@@ -391,12 +391,9 @@
       }
       
       showSuccessMessage();
-      showNotification('Registration successful! Please check your email to verify your account.', 'success');
+      showNotification('Registration successful! Welcome to Artify!', 'success');
       setTimeout(() => { 
-        isSignup = false;
-        showLoginForm();
-        successMessage.classList.add('hidden');
-        authForm.style.display = 'block';
+        window.location.href = 'index.html';
       }, 3000);
     }
 
