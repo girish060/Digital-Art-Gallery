@@ -526,10 +526,8 @@
       });
 
       modal.querySelector('.checkout-btn').addEventListener('click', () => {
-        // For demo, redirect to payment page with first item
         if (cart.length > 0) {
-          const firstItem = cart[0];
-          window.location.href = `payment.html?title=${encodeURIComponent(firstItem.title)}&price=${encodeURIComponent(firstItem.price)}&image=${encodeURIComponent(firstItem.image)}`;
+          purchaseArtwork(cart[0]);
         }
       });
 
