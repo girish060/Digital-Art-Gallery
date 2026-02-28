@@ -6,39 +6,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
   <title>Artify - Artworks Collection</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-    
-    * {
-      font-family: 'Inter', sans-serif;
-    }
-    
-    .text-gradient {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-    
-    .navbar-backdrop {
-      backdrop-filter: blur(20px);
-      background: rgba(255, 255, 255, 0.95);
-    }
-
-    .art-card {
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    
-    .art-card:hover {
-      transform: translateY(-8px);
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    }
-    
-    .filter-btn.active {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-    }
-  </style>
+  
 </head>
 <body class="bg-gray-50">
 
@@ -186,171 +154,51 @@
   </main>
 
   <!-- Enhanced JavaScript -->
-      <script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="auth.js"></script>
+  <script>
     // Global state
-    let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
     let cart = JSON.parse(localStorage.getItem('cart')) || [];
     let wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
     let currentFilter = 'all';
     let currentSort = 'featured';
 
-    // Demo artwork data for demonstration purposes
-    const artworks = [
-      {
-        title: "BERLIN",
-        price: "8000.00",
-        category: "digital",
-        image: "https://wallpapers.com/images/featured/berlin-money-heist-kvj75f712dxdsdy1.jpg",
-        artist: "Demo Artist",
-        rating: 4.8,
-        sales: 12,
-        isDemo: true
-      },
-      {
-        title: "The Infamous Van",
-        price: "2100.00",
-        category: "digital",
-        image: "https://c4.wallpaperflare.com/wallpaper/908/117/195/breaking-bad-artwork-vector-art-1920x1080-abstract-breaking-bad-hd-art-wallpaper-preview.jpg",
-        artist: "Demo Artist",
-        rating: 4.6,
-        sales: 8,
-        isDemo: true
-      },
-      {
-        title: "Breaking Bad",
-        price: "12000.00",
-        category: "digital",
-        image: "https://creator.nightcafe.studio/jobs/Pv0ZKMijrgZHH5C9YjHR/Pv0ZKMijrgZHH5C9YjHR--1--kmp5w.jpg",
-        artist: "Demo Artist",
-        rating: 4.9,
-        sales: 15,
-        isDemo: true
-      },
-      {
-        title: "Last Man Standing",
-        price: "1800.40",
-        category: "photography",
-        image: "https://static1.srcdn.com/wordpress/wp-content/uploads/2022/07/Oppenheimer-Header.jpg",
-        artist: "Demo Artist",
-        rating: 4.5,
-        sales: 6,
-        isDemo: true
-      },
-      {
-        title: "Avengers Assemble",
-        price: "1659.00",
-        category: "digital",
-        image: "https://disneyartonmain.com/cdn/shop/files/plp-marvel-wall-art.png?v=1654962113&width=3840",
-        artist: "Demo Artist",
-        rating: 4.7,
-        sales: 23,
-        isDemo: true
-      },
-      {
-        title: "Pokemon",
-        price: "2120.15",
-        category: "digital",
-        image: "https://assetsio.gnwcdn.com/pokemon-tcg-contest-winner.jpg?width=1200&height=600&fit=crop&enable=upscale&auto=webp",
-        artist: "Demo Artist",
-        rating: 4.8,
-        sales: 17,
-        isDemo: true
-      },
-      {
-        title: "Neon Samurai",
-        price: "6200.00",
-        category: "traditional",
-        image: "https://img.freepik.com/free-photo/samurai-meditation-traditional-japanese-house_123827-29669.jpg",
-        artist: "Demo Artist",
-        rating: 4.8,
-        sales: 13,
-        isDemo: true
-      },
-      {
-        title: "Lone Wanderer",
-        price: "4700.00",
-        category: "digital",
-        image: "https://img.freepik.com/free-vector/explorer-with-backpack-background_23-2148162272.jpg",
-        artist: "Demo Artist",
-        rating: 4.5,
-        sales: 7,
-        isDemo: true
-      },
-      {
-        title: "Synth City",
-        price: "8999.00",
-        category: "digital",
-        image: "https://img.freepik.com/free-photo/illustration-rain-futuristic-city_23-2151406576.jpg",
-        artist: "Demo Artist",
-        rating: 4.9,
-        sales: 19,
-        isDemo: true
-      },
-      {
-        title: "Infinite Depths",
-        price: "7555.00",
-        category: "digital",
-        image: "https://img.freepik.com/premium-photo/mermaid-is-standing-ocean-with-mermaid-background_1105043-139299.jpg",
-        artist: "Demo Artist",
-        rating: 4.7,
-        sales: 11,
-        isDemo: true
-      },
-      {
-        title: "Mystic Dunes",
-        price: "6800.00",
-        category: "abstract",
-        image: "https://img.freepik.com/free-vector/decorative-beautiful-sunset-scene-elegant-background_1055-17773.jpg",
-        artist: "Demo Artist",
-        rating: 4.6,
-        sales: 8,
-        isDemo: true
-      },
-      {
-        title: "Desert Mirage",
-        price: "4200.00",
-        category: "traditional",
-        image: "https://img.freepik.com/free-vector/caravan-desert-background-arab-people-camels-silhouettes-sands-caravan-with-camel-camelcade-silhouette-travel-sand-desert-illustration_1284-51614.jpg",
-        artist: "Demo Artist",
-        rating: 4.5,
-        sales: 5,
-        isDemo: true
-      },
-      {
-        title: "Cosmic Blossom",
-        price: "9600.00",
-        category: "abstract",
-        image: "https://www.giantrobot.com/cdn/shop/files/Cosmic_flower_in_sunset_hue_05_1080x.jpg?v=1729886132",
-        artist: "Demo Artist",
-        rating: 4.8,
-        sales: 16,
-        isDemo: true
-      },
-      {
-        title: "Urban Dreamscape",
-        price: "8100.00",
-        category: "digital",
-        image: "https://images.stockcake.com/public/5/5/7/5572cccd-97fb-495f-b4a2-f8f6f38bc298_large/neon-dreamscape-art-stockcake.jpg",
-        artist: "Demo Artist",
-        rating: 4.7,
-        sales: 14,
-        isDemo: true
+    let artworks = [];
+    async function loadArtworks() {
+      const supabase = await initSupabase();
+      if (!supabase) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('artworks')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        artworks = (Array.isArray(data) ? data : []).map(item => ({
+          title: item.title || "Untitled",
+          price: String(item.price ?? "0"),
+          category: item.category || "digital",
+          image: item.image_url || "",
+          artist: "User",
+          rating: 4.8,
+          sales: 0,
+          isDemo: false
+        }));
+        renderArtworks(artworks);
+      } catch (e) {
+        console.error("Error loading artworks:", e.message);
+        renderArtworks([]);
       }
-    ];
+    }
 
     // Initialize
     document.addEventListener("DOMContentLoaded", function() {
-      updateUserInterface();
       updateCartCount();
-      renderArtworks();
+      loadArtworks();
       initializeEventListeners();
     });
-
-    function updateUserInterface() {
-      if (currentUser) {
-        document.getElementById('userDisplay').textContent = currentUser.name;
-      }
-    }
 
     function updateCartCount() {
       const count = cart.length;
@@ -418,7 +266,7 @@
         grid.appendChild(card);
       });
     }
-
+    
     function createArtworkCard(artwork) {
       const card = document.createElement('div');
       card.className = 'bg-white rounded-2xl shadow-lg overflow-hidden art-card';
@@ -694,5 +542,6 @@
       }, 3000);
     }
   </script>
+  
 </body>
 </html>

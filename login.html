@@ -8,29 +8,15 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-    
-    * {
-      font-family: 'Inter', sans-serif;
-    }
-    
-    .text-gradient {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-    
-    .hero-gradient {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-    }
-    
-    .navbar-backdrop {
-      backdrop-filter: blur(20px);
-      background: rgba(255, 255, 255, 0.95);
-    }
+    * { font-family: 'Inter', sans-serif; }
+    .text-gradient { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .hero-gradient { background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%); }
+    .navbar-backdrop { backdrop-filter: blur(20px); background: rgba(255, 255, 255, 0.95); }
   </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="auth.js"></script>
 
   <!-- Enhanced Header -->
   <header class="navbar-backdrop border-b border-gray-200">
@@ -112,13 +98,23 @@
 
         <!-- Social Login Options -->
         <div class="space-y-3 mb-6">
-          <button type="button" class="w-full flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+          <button type="button" id="google-btn" data-social="google" class="w-full flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
             <i class="fab fa-google text-red-500 mr-3"></i>
             <span class="font-medium text-gray-700">Continue with Google</span>
           </button>
-          <button type="button" class="w-full flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+          <button type="button" id="facebook-btn" data-social="facebook" class="w-full flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
             <i class="fab fa-facebook text-blue-600 mr-3"></i>
             <span class="font-medium text-gray-700">Continue with Facebook</span>
+          </button>
+        </div>
+
+        <div id="connection-status" class="mb-6 p-4 bg-gray-100 rounded-lg text-xs text-gray-600 hidden">
+          <div class="flex items-center justify-between mb-2">
+            <span>Project Connection:</span>
+            <span id="ping-status" class="font-bold">Checking...</span>
+          </div>
+          <button id="test-connection-btn" class="w-full py-2 bg-white border border-gray-300 rounded hover:bg-gray-50 transition">
+            Test Project Connectivity
           </button>
         </div>
 
@@ -227,6 +223,8 @@
       showSignupForm();
     });
 
+
+
     function initializeEventListeners() {
       // Toggle between signup/login
       toggleLink.addEventListener('click', handleToggleMode);
@@ -330,7 +328,6 @@
       
       if (isLoading) return;
       
-      const formData = new FormData(authForm);
       const name = document.getElementById('name')?.value.trim();
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
@@ -374,56 +371,57 @@
     }
 
     async function handleSignup(name, email, password) {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const supabase = await initSupabase();
+      if (!supabase) throw new Error('Supabase configuration error. Please check your connection.');
       
-      const users = JSON.parse(localStorage.getItem('users') || '{}');
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { 
+          data: { name },
+          emailRedirectTo: window.location.origin + '/login.html'
+        }
+      });
       
-      if (users[email]) {
-        throw new Error("Email already registered. Please use a different email or sign in.");
+      if (error) {
+        if (error.message.includes('User already registered')) {
+          throw new Error('This email is already registered. Please sign in instead.');
+        }
+        throw error;
       }
       
-      // Create user
-      const user = {
-        name,
-        email,
-        password, // In a real app, this would be hashed
-        createdAt: new Date().toISOString(),
-        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=667eea&color=fff`
-      };
-      
-      users[email] = user;
-      localStorage.setItem('users', JSON.stringify(users));
-      localStorage.setItem('currentUser', JSON.stringify(user));
-      
-      // Show success message
       showSuccessMessage();
-      
-      // Redirect after delay
-      setTimeout(() => {
-        window.location.href = 'index.html';
-      }, 2000);
+      showNotification('Registration successful! Please check your email to verify your account.', 'success');
+      setTimeout(() => { 
+        isSignup = false;
+        showLoginForm();
+        successMessage.classList.add('hidden');
+        authForm.style.display = 'block';
+      }, 3000);
     }
 
     async function handleLogin(email, password) {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const supabase = await initSupabase();
+      if (!supabase) throw new Error('Supabase configuration error. Please check your connection.');
       
-      const users = JSON.parse(localStorage.getItem('users') || '{}');
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       
-      if (!users[email] || users[email].password !== password) {
-        throw new Error("Invalid email or password. Please check your credentials.");
+      if (error) {
+        if (error.message.includes('Invalid login credentials')) {
+          throw new Error('Invalid email or password. Please try again.');
+        }
+        if (error.message.includes('Email not confirmed')) {
+          throw new Error('Please verify your email address before signing in.');
+        }
+        throw error;
       }
       
-      // Set current user
-      localStorage.setItem('currentUser', JSON.stringify(users[email]));
+      // Update session info in localStorage
+      await checkUserSession();
       
-      showNotification(`Welcome back, ${users[email].name}!`, "success");
-      
-      // Redirect after delay
-      setTimeout(() => {
-        window.location.href = 'index.html';
-      }, 1500);
+      const name = data?.user?.user_metadata?.name || email;
+      showNotification(`Welcome back, ${name}! Redirecting...`, "success");
+      setTimeout(() => { window.location.href = 'index.html'; }, 1500);
     }
 
     function setLoadingState(loading) {
@@ -480,9 +478,66 @@
       }, 5000);
     }
 
-    function handleSocialLogin(e) {
-      const provider = e.currentTarget.textContent.toLowerCase().includes('google') ? 'Google' : 'Facebook';
-      showNotification(`${provider} login will be available soon!`, 'info');
+    const testConnBtn = document.getElementById('test-connection-btn');
+    const connStatusDiv = document.getElementById('connection-status');
+    const pingStatus = document.getElementById('ping-status');
+
+    async function testProjectConnectivity() {
+      connStatusDiv.classList.remove('hidden');
+      pingStatus.textContent = 'Checking...';
+      pingStatus.className = 'font-bold text-blue-600';
+
+      try {
+        const cfgRes = await fetch('/api/public-config');
+        const cfg = await cfgRes.json();
+        const url = cfg.supabaseUrl;
+
+        if (!url) throw new Error('No URL in config');
+
+        const startTime = Date.now();
+        // Try a simple fetch to the project root
+        const res = await fetch(url, { mode: 'no-cors' });
+        const duration = Date.now() - startTime;
+        
+        pingStatus.textContent = `Connected (${duration}ms)`;
+        pingStatus.className = 'font-bold text-green-600';
+        showNotification('Successfully reached the Supabase project!', 'success');
+      } catch (err) {
+        pingStatus.textContent = 'OFFLINE / TIMEOUT';
+        pingStatus.className = 'font-bold text-red-600';
+        showNotification('Connection Failed! Please check if your Supabase project is active (Green dot in dashboard).', 'error');
+      }
+    }
+
+    if (testConnBtn) {
+      testConnBtn.addEventListener('click', testProjectConnectivity);
+    }
+
+    async function handleSocialLogin(e) {
+      const provider = e.currentTarget.getAttribute('data-social');
+      if (!provider) return;
+      
+      try {
+        const supabase = await initSupabase();
+        if (!supabase) {
+          showNotification('Supabase project not reachable. Check your dashboard for an ORANGE dot.', 'error');
+          testProjectConnectivity();
+          return;
+        }
+        
+        console.log(`Starting ${provider} login redirect to:`, window.location.origin + '/index.html');
+        
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider: provider,
+          options: {
+            redirectTo: window.location.origin + '/index.html'
+          }
+        });
+        
+        if (error) throw error;
+      } catch (error) {
+        showNotification(error.message, 'error');
+      }
     }
 
     // Auto-focus first input

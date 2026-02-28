@@ -1,0 +1,33 @@
+{
+  "name": "artify-v2",
+  "version": "1.0.0",
+  "description": "A modern, fully-functional multi-page web application for digital art marketplace built with HTML5, CSS3 (TailwindCSS), and Vanilla JavaScript.",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon server.js",
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/girish060/Artify-v2.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/girish060/Artify-v2/issues"
+  },
+  "homepage": "https://github.com/girish060/Artify-v2#readme",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.98.0",
+    "compression": "^1.8.1",
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "helmet": "^8.1.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}

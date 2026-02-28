@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Upload Artwork</title>
+</head>
+<body>
+
+  <h2>Upload Artwork</h2>
+
+  <form id="uploadForm">
+    <input type="text" id="title" placeholder="Title" required />
+    <br><br>
+
+    <textarea id="description" placeholder="Description"></textarea>
+    <br><br>
+
+    <input type="number" id="price" placeholder="Price" required />
+    <br><br>
+
+    <input type="file" id="imageInput" required />
+    <br><br>
+
+    <button type="submit">Upload</button>
+  </form>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="auth.js"></script>
+
+  <script>
+    const form = document.getElementById("uploadForm");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const supabase = await initSupabase();
+      if (!supabase) {
+        alert("Supabase not configured");
+        return;
+      }
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        alert("Please sign in to upload artwork.");
+        window.location.href = 'login.html';
+        return;
+      }
+
+      const title = document.getElementById("title").value;
+      const description = document.getElementById("description").value;
+      const price = document.getElementById("price").value;
+      const file = document.getElementById("imageInput").files[0];
+
+      const fileName = Date.now() + "-" + file.name;
+
+      // Upload image to Supabase storage
+      const { error: uploadError } = await supabase.storage
+        .from("artworks")
+        .upload(fileName, file);
+
+      if (uploadError) {
+        alert("Upload failed: " + uploadError.message);
+        return;
+      }
+
+      // Get public URL
+      const imageUrl = supabase.storage
+        .from("artworks")
+        .getPublicUrl(fileName).data.publicUrl;
+
+      // Insert record into database
+      const { error: insertError } = await supabase
+        .from("artworks")
+        .insert([
+          {
+            title,
+            description,
+            price,
+            image_url: imageUrl
+          }
+        ]);
+
+      if (insertError) {
+        alert("Database insert failed: " + insertError.message);
+        return;
+      }
+
+      alert("Artwork uploaded successfully!");
+      form.reset();
+    });
+  </script>
+
+</body>
+</html>

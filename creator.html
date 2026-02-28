@@ -3,9 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet">
+  
   <title>Creator Tab - Artify</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
 <body class="bg-gray-100 min-h-screen flex flex-col items-center py-10">
@@ -84,12 +85,15 @@
     <p id="finalPrice" class="text-gray-800 text-sm font-semibold"></p>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="auth.js"></script>
   <script>
     const dropZone = document.getElementById('drop-zone');
     const fileInput = document.getElementById('fileInput');
     const preview = document.getElementById('preview');
     const previewImg = document.getElementById('previewImg');
     const submitBtn = document.getElementById('submitBtn');
+    const submitBtnOriginal = submitBtn.textContent;
 
     const artTitle = document.getElementById('artTitle');
     const artDescription = document.getElementById('artDescription');
@@ -103,12 +107,14 @@
     const submittedDisplay = document.getElementById('submittedDisplay');
 
     let imageData = '';
+    let selectedFile = null;
 
     dropZone.addEventListener('click', () => fileInput.click());
 
     fileInput.addEventListener('change', () => {
       const file = fileInput.files[0];
       if (file && file.type.startsWith('image/')) {
+        selectedFile = file;
         const reader = new FileReader();
         reader.onload = e => {
           imageData = e.target.result;
@@ -133,6 +139,7 @@
       dropZone.classList.remove('bg-indigo-100');
       const file = e.dataTransfer.files[0];
       if (file && file.type.startsWith('image/')) {
+        selectedFile = file;
         const reader = new FileReader();
         reader.onload = e => {
           imageData = e.target.result;
@@ -143,7 +150,50 @@
       }
     });
 
-    submitBtn.addEventListener('click', () => {
+    async function configureUI(user) {
+      if (!user) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Sign in to upload';
+        // Check if login link already exists to avoid duplicates
+        if (!document.getElementById('loginLinkCreator')) {
+          const loginLink = document.createElement('a');
+          loginLink.id = 'loginLinkCreator';
+          loginLink.href = 'login.html';
+          loginLink.className = 'text-indigo-600 font-medium ml-2';
+          loginLink.textContent = 'Sign in';
+          submitBtn.parentElement.appendChild(loginLink);
+        }
+      } else {
+        submitBtn.disabled = false;
+        submitBtn.textContent = submitBtnOriginal; // Restore original text
+        const existingLoginLink = document.getElementById('loginLinkCreator');
+        if (existingLoginLink) {
+          existingLoginLink.remove();
+        }
+      }
+    }
+
+    // Register for auth changes
+    onAuthStateChange((user) => {
+      console.log("Creator page auth change:", user);
+      configureUI(user);
+    });
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      // The onAuthStateChange above handles initial UI via cached localStorage
+      // But we still call checkUserSession to verify with Supabase
+      const user = await checkUserSession();
+      configureUI(user);
+    });
+
+    submitBtn.addEventListener('click', async () => {
+      const user = await checkUserSession(); // Final check before upload
+      if (!user) {
+        alert('Please sign in to upload your artwork.');
+        configureUI(null);
+        return;
+      }
+
       const title = artTitle.value.trim();
       const desc = artDescription.value.trim();
       const price = artPrice.value.trim();
@@ -159,12 +209,58 @@
       finalPrice.textContent = `Price: ₹${price}`;
       submittedDisplay.classList.remove('hidden');
 
+      try {
+        const supabase = await initSupabase();
+        if (!supabase) {
+          alert('Supabase is not configured (missing anon key).');
+          return;
+        }
+        // Upload to Storage bucket 'artworks'
+        const fileName = `${Date.now()}-${(selectedFile?.name || 'image').replace(/[^a-zA-Z0-9._-]/g, '')}`;
+        const uploadPath = `uploads/${fileName}`;
+        const { error: upError } = await supabase.storage.from('artworks').upload(uploadPath, selectedFile, {
+          contentType: selectedFile?.type || 'image/jpeg',
+          upsert: false
+        });
+        if (upError) {
+          alert('Upload failed: ' + upError.message);
+          return;
+        }
+        const { data: pub } = supabase.storage.from('artworks').getPublicUrl(uploadPath);
+        const publicUrl = pub?.publicUrl || '';
+        if (!publicUrl) {
+          alert('Failed to get public URL');
+          return;
+        }
+        // Persist record directly via client-side Supabase
+        const { data: dbData, error: dbError } = await supabase
+          .from('artworks')
+          .insert([{
+            title,
+            description: desc,
+            price: parseFloat(price),
+            image_url: publicUrl,
+            category: 'digital' // Default category
+          }]);
+
+        if (dbError) {
+          alert('Database insert failed: ' + dbError.message);
+          return;
+        }
+
+        alert('Artwork submitted successfully!');
+        finalImage.src = publicUrl;
+      } catch (e) {
+        alert('An unexpected error occurred: ' + e.message);
+      }
+
       artTitle.value = '';
       artDescription.value = '';
       artPrice.value = '';
       preview.classList.add('hidden');
       fileInput.value = '';
       imageData = '';
+      selectedFile = null;
     });
   </script>
 </body>

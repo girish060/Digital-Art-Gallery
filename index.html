@@ -9,76 +9,20 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-    
-    * {
-      font-family: 'Inter', sans-serif;
-    }
-    
-    .hidden {
-      display: none;
-    }
-    
-    .gradient-bg {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    }
-    
-    .glass-effect {
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-    }
-    
-    .artwork-card {
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    
-    .artwork-card:hover {
-      transform: translateY(-8px);
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    }
-    
-    .hero-gradient {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-    }
-    
-    .floating-animation {
-      animation: float 6s ease-in-out infinite;
-    }
-    
-    @keyframes float {
-      0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(-20px); }
-    }
-    
-    .text-gradient {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-    
-    .cart-count {
-      animation: bounce 0.3s ease-in-out;
-    }
-    
-    @keyframes bounce {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.2); }
-    }
-    
-    .navbar-backdrop {
-      backdrop-filter: blur(20px);
-      background: rgba(255, 255, 255, 0.95);
-    }
+    * { font-family: 'Inter', sans-serif; }
+    .hero-gradient { background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%); }
+    .glass-effect { background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.3); }
+    .text-gradient { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .navbar-backdrop { backdrop-filter: blur(20px); background: rgba(255,255,255,0.95); }
   </style>
 </head>
 <body class="text-gray-800">
 
   <!-- Enhanced Header -->
   <header class="fixed w-full top-0 z-50 navbar-backdrop border-b border-gray-200">
-    <div class="container mx-auto flex flex-wrap p-4 flex-col md:flex-row items-center justify-between">
+    <div class="container mx-auto flex p-4 items-center justify-between">
       <!-- Logo -->
-      <a href="index.html" class="flex title-font font-bold items-center text-gray-900 mb-4 md:mb-0 group">
+      <a href="index.html" class="flex title-font font-bold items-center text-gray-900 mb-0 group">
         <img src="https://pictures.artify.tn/app/artify_logo_xs.png" alt="Artify Logo" class="w-10 h-10 rounded-full transition-transform group-hover:scale-110">
         <span class="ml-3 text-2xl text-gradient">Artify</span>
       </a>
@@ -93,28 +37,17 @@
       </nav>
       
       <!-- User Actions -->
-      <div class="flex items-center space-x-4">
-      <!-- Search Bar -->
+      <div class="flex items-center space-x-2 md:space-x-4">
         <div class="relative hidden md:block">
           <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-        <input type="text" id="searchInput" placeholder="Search artworks..." 
+          <input type="text" id="searchInput" placeholder="Search artworks..." 
                  class="bg-gray-100 text-gray-800 pl-10 pr-4 py-2 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all w-64">
         </div>
-        
-        <!-- Cart Button -->
-        <button id="cartBtn" class="relative p-2 text-gray-700 hover:text-indigo-600 transition-colors">
-          <i class="fas fa-shopping-cart text-xl"></i>
-          <span id="cartCount" class="absolute -top-1 -right-1 bg-indigo-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center cart-count hidden">0</span>
-        </button>
-        
-        <!-- User Profile -->
         <div class="relative">
           <button id="userBtn" class="flex items-center space-x-2 text-gray-700 hover:text-indigo-600 transition-colors">
             <i class="fas fa-user-circle text-xl"></i>
             <span class="hidden md:inline font-medium" id="userDisplay">Sign In</span>
           </button>
-          
-          <!-- Dropdown Menu -->
           <div id="userDropdown" class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border hidden">
             <div class="py-2">
               <a href="login.html" class="block px-4 py-2 text-gray-800 hover:bg-gray-100 transition-colors" id="loginLink">
@@ -138,10 +71,12 @@
             </div>
           </div>
         </div>
-        
-        <!-- Mobile Menu Button -->
         <button id="mobileMenuBtn" class="md:hidden p-2 text-gray-700 hover:text-indigo-600">
           <i class="fas fa-bars text-xl"></i>
+        </button>
+        <button id="cartBtn" class="relative p-2 text-gray-700 hover:text-indigo-600 transition-colors">
+          <i class="fas fa-shopping-cart text-xl"></i>
+          <span id="cartCount" class="absolute -top-1 -right-1 bg-indigo-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center cart-count hidden">0</span>
         </button>
       </div>
     </div>
@@ -638,10 +573,10 @@
     </div>
   </footer>
 
-  <!-- Enhanced JavaScript Functionality -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="auth.js"></script>
   <script>
     // Global state management
-    let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
     let cart = JSON.parse(localStorage.getItem('cart')) || [];
     let wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
 
@@ -663,25 +598,9 @@
 
     // Initialize app
     document.addEventListener('DOMContentLoaded', function() {
-      updateUserInterface();
       updateCartCount();
       initializeEventListeners();
     });
-
-    // User interface updates
-    function updateUserInterface() {
-      if (currentUser) {
-        userDisplay.textContent = currentUser.name;
-        userMenu.classList.remove('hidden');
-        loginLink.classList.add('hidden');
-        signupLink.classList.add('hidden');
-      } else {
-        userDisplay.textContent = 'Sign In';
-        userMenu.classList.add('hidden');
-        loginLink.classList.remove('hidden');
-        signupLink.classList.remove('hidden');
-      }
-    }
 
     // Update cart count
     function updateCartCount() {
@@ -781,15 +700,6 @@
     // Mobile menu toggle
     function toggleMobileMenu() {
       mobileMenu.classList.toggle('hidden');
-    }
-
-    // Handle logout
-    function handleLogout() {
-      localStorage.removeItem('currentUser');
-      currentUser = null;
-      updateUserInterface();
-      userDropdown.classList.add('hidden');
-      alert('Logged out successfully!');
     }
 
     // Handle outside clicks
@@ -955,14 +865,93 @@
     }
 
     // Newsletter subscription
-    document.querySelector('footer form').addEventListener('submit', function(e) {
-      e.preventDefault();
-      const email = this.querySelector('input[type="email"]').value;
-      if (email) {
-        showNotification('Successfully subscribed to newsletter!');
-        this.reset();
+    const footerForm = document.querySelector('footer form');
+    if (footerForm) {
+      footerForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const email = this.querySelector('input[type="email"]')?.value || '';
+        if (email) {
+          showNotification('Successfully subscribed to newsletter!');
+          this.reset();
+        }
+      });
+    }
+  </script>
+  <script>
+    async function loadFeaturedArtworks() {
+      const supabase = await initSupabase();
+      if (!supabase) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('artworks')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(8);
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          const grid = document.getElementById('artworkGrid');
+          // Keep the demo cards but append new ones, or replace? 
+          // Let's replace the demo cards with actual data if it exists.
+          grid.innerHTML = ''; 
+          
+          data.forEach((item, index) => {
+            const card = document.createElement('div');
+            card.className = 'artwork-card bg-white rounded-2xl shadow-lg overflow-hidden';
+            card.setAttribute('data-category', item.category || 'digital');
+            card.setAttribute('data-aos', 'zoom-in');
+            card.setAttribute('data-aos-delay', (index * 100).toString());
+            
+            card.innerHTML = `
+              <div class="relative overflow-hidden group">
+                <img class="h-64 w-full object-cover transition-transform duration-500 group-hover:scale-110" 
+                     src="${item.image_url}" 
+                     alt="${item.title}">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <button class="p-2 bg-white/90 rounded-full text-red-500 hover:text-red-600 transition-colors">
+                    <i class="fas fa-heart"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="p-6">
+                <div class="flex justify-between items-start mb-2">
+                  <h3 class="text-lg font-bold text-gray-900">${item.title}</h3>
+                  <span class="text-sm text-gray-500">Artist</span>
+                </div>
+                <p class="text-gray-600 text-sm mb-4">${item.description || 'No description available.'}</p>
+                <div class="flex justify-between items-center">
+                  <span class="text-xl font-bold text-indigo-600">₹${parseFloat(item.price).toLocaleString()}</span>
+                  <div class="flex space-x-2">
+                    <button class="add-to-cart-btn px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
+                            data-title="${item.title}" data-image="${item.image_url}" data-price="${item.price}">
+                      <i class="fas fa-shopping-cart mr-1"></i>
+                      Cart
+                    </button>
+                    <button class="px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium">
+                      View
+                    </button>
+                  </div>
+                </div>
+              </div>
+            `;
+            grid.appendChild(card);
+          });
+          
+          // Re-initialize AOS for new elements
+          if (window.AOS) window.AOS.refresh();
+          
+          // Re-query artwork cards for search/filter logic
+          window.artworkCards = document.querySelectorAll(".artwork-card");
+        }
+      } catch (e) {
+        console.error("Error loading artworks:", e.message);
       }
-    });
+    }
+
+    document.addEventListener('DOMContentLoaded', loadFeaturedArtworks);
   </script>
 
   <!-- AOS Animation Script -->
