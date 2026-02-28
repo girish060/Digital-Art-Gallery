@@ -4,59 +4,34 @@ let authStateListeners = [];
 
 async function initSupabase() {
   if (sb) return sb;
-  try {
-    // Hardcoded for production (anon key is public)
-    const supabaseUrl = 'https://crmsrahbjdlfjrmuvfoe.supabase.co';
-    const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNybXNyYWhiamRsZmpybXV2Zm9lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyNzEzMTYsImV4cCI6MjA4Nzg0NzMxNn0.Ln0Jv4-0bhDGooDQg35--PAvQrjFBhyWqj_Nr-qmQv8';
-    sb = window.supabase.createClient(supabaseUrl, supabaseAnonKey, {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true
-      }
-    });
-      
-      // Listen for auth changes
-      sb.auth.onAuthStateChange((event, session) => {
-        console.log("Supabase Auth event:", event);
-        const user = session ? {
-          name: session.user.user_metadata?.name || session.user.user_metadata?.full_name || session.user.email,
-          email: session.user.email,
-          id: session.user.id
-        } : null;
-        
-        if (user) {
-          localStorage.setItem('currentUser', JSON.stringify(user));
-        } else {
-          localStorage.removeItem('currentUser');
-        }
-        
-        updateGlobalUI(user);
-        // Notify listeners
-        authStateListeners.forEach(callback => callback(user, session));
-      });
-      
-      return sb;
-    } else {
-      const msg = "Supabase configuration is incomplete or uses placeholders. Please check your .env file.";
-      console.error(msg);
-      showNotification(msg, "error");
+  const supabaseUrl = 'https://crmsrahbjdlfjrmuvfoe.supabase.co';
+  const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNybXNyYWhiamRsZmpybXV2Zm9lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyNzEzMTYsImV4cCI6MjA4Nzg0NzMxNn0.Ln0Jv4-0bhDGooDQg35--PAvQrjFBhyWqj_Nr-qmQv8';
+  sb = window.supabase.createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true
     }
-  } catch (e) {
-    console.error("Critical error initializing Supabase client:", e.message);
-    if (e.message.includes('fetch')) {
-      const troubleshooting = `
-NETWORK ERROR: Could not reach the Supabase backend.
-⚠️  Check the "ORANGE DOT" in your dashboard (Project Status).
-1. The project might be PAUSED (Click 'Restore' in the dashboard).
-2. The project might be INITIALIZING (Wait for the dot to turn green).
-3. Your internet or firewall is blocking kphieayrtqejbhzgmrbk.supabase.co.`;
-      showNotification(troubleshooting, "error");
+  });
+  sb.auth.onAuthStateChange((event, session) => {
+    console.log("Supabase Auth event:", event);
+    const user = session ? {
+      name: session.user.user_metadata?.name || session.user.user_metadata?.full_name || session.user.email,
+      email: session.user.email,
+      id: session.user.id
+    } : null;
+    
+    if (user) {
+      localStorage.setItem('currentUser', JSON.stringify(user));
     } else {
-      showNotification(`Backend error: ${e.message}`, "error");
+      localStorage.removeItem('currentUser');
     }
-  }
-  return null;
+    
+    updateGlobalUI(user);
+    // Notify listeners
+    authStateListeners.forEach(callback => callback(user, session));
+  });
+  return sb;
 }
 
 function onAuthStateChange(callback) {
