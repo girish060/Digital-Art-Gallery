@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Order Confirmation - Artify</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    * { font-family: 'Inter', sans-serif; }
+    .success-gradient { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+    .text-gradient { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  </style>
+</head>
+<body class="bg-gray-50">
+  <!-- Header -->
+  <header class="bg-white border-b border-gray-200">
+    <div class="container mx-auto px-4 py-4">
+      <div class="flex items-center justify-between">
+        <a href="index.html" class="flex items-center space-x-3">
+          <img src="https://pictures.artify.tn/app/artify_logo_xs.png" alt="Artify Logo" class="w-10 h-10 rounded-full">
+          <span class="text-2xl font-bold text-gradient">Artify</span>
+        </a>
+        <nav class="hidden md:flex items-center space-x-6">
+          <a href="index.html" class="text-gray-700 hover:text-indigo-600 font-medium transition-colors">Home</a>
+          <a href="artworks.html" class="text-gray-700 hover:text-indigo-600 font-medium transition-colors">Artworks</a>
+          <a href="creator.html" class="text-gray-700 hover:text-indigo-600 font-medium transition-colors">Creator</a>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="min-h-screen flex items-center justify-center py-12">
+    <div class="container mx-auto px-4">
+      <div class="max-w-2xl mx-auto">
+        <!-- Success Card -->
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+          <!-- Success Header -->
+          <div class="success-gradient p-8 text-center">
+            <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-6">
+              <i class="fas fa-check-circle text-green-600 text-4xl"></i>
+            </div>
+            <h1 class="text-3xl font-bold text-white mb-2">Order Confirmed!</h1>
+            <p class="text-green-100">Thank you for your purchase. Your order has been successfully processed.</p>
+          </div>
+
+          <!-- Order Details -->
+          <div class="p-8">
+            <div class="mb-8">
+              <h2 class="text-xl font-bold text-gray-900 mb-4">Order Details</h2>
+              <div class="bg-gray-50 rounded-lg p-6">
+                <div class="flex items-center justify-between mb-4">
+                  <span class="text-gray-600">Order Number:</span>
+                  <span class="font-semibold text-gray-900" id="orderNumber">#ORD-000000</span>
+                </div>
+                <div class="flex items-center justify-between mb-4">
+                  <span class="text-gray-600">Payment ID:</span>
+                  <span class="font-semibold text-gray-900" id="paymentId">PAY-000000</span>
+                </div>
+                <div class="flex items-center justify-between mb-4">
+                  <span class="text-gray-600">Date:</span>
+                  <span class="font-semibold text-gray-900" id="orderDate">-</span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-gray-600">Status:</span>
+                  <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">Completed</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Artwork Details -->
+            <div class="mb-8">
+              <h2 class="text-xl font-bold text-gray-900 mb-4">Purchased Artwork</h2>
+              <div class="bg-gray-50 rounded-lg p-6">
+                <div class="flex items-center space-x-4">
+                  <img id="artworkImage" class="w-24 h-24 object-cover rounded-lg" alt="Artwork">
+                  <div class="flex-1">
+                    <h3 class="text-lg font-semibold text-gray-900" id="artworkTitle">-</h3>
+                    <p class="text-gray-600 mb-2">Digital Download</p>
+                    <p class="text-2xl font-bold text-indigo-600" id="artworkPrice">₹0</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Download Section -->
+            <div class="mb-8">
+              <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                <div class="flex items-center">
+                  <i class="fas fa-download text-blue-600 text-xl mr-4"></i>
+                  <div>
+                    <h3 class="font-semibold text-blue-900 mb-1">Digital Download</h3>
+                    <p class="text-blue-700 text-sm">Your artwork is ready for download. High-resolution file will be available in your account.</p>
+                  </div>
+                </div>
+                <button class="mt-4 w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+                  <i class="fas fa-download mr-2"></i>
+                  Download Artwork
+                </button>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-col sm:flex-row gap-4">
+              <button onclick="window.location.href='artworks.html'" class="flex-1 bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors">
+                <i class="fas fa-shopping-bag mr-2"></i>
+                Continue Shopping
+              </button>
+              <button onclick="window.location.href='index.html'" class="flex-1 bg-gray-200 text-gray-800 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors">
+                <i class="fas fa-home mr-2"></i>
+                Back to Home
+              </button>
+            </div>
+
+            <!-- Support Info -->
+            <div class="mt-8 text-center">
+              <p class="text-gray-600 text-sm">
+                <i class="fas fa-headset mr-2"></i>
+                Need help? Contact our support team at support@artify.com
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-gray-900 text-white py-8">
+    <div class="container mx-auto px-4 text-center">
+      <div class="flex items-center justify-center mb-4">
+        <img src="https://pictures.artify.tn/app/artify_logo_xs.png" alt="Artify Logo" class="w-8 h-8 rounded-full">
+        <span class="ml-2 text-xl font-bold">Artify</span>
+      </div>
+      <p class="text-gray-400 text-sm">© 2026 Artify. Where creativity lives and art comes alive.</p>
+    </div>
+  </footer>
+
+  <script>
+    // Get order details from URL parameters or localStorage
+    document.addEventListener('DOMContentLoaded', function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const purchases = JSON.parse(localStorage.getItem('purchases') || '[]');
+      
+      if (purchases.length > 0) {
+        const latestPurchase = purchases[purchases.length - 1];
+        
+        // Update order details
+        document.getElementById('orderNumber').textContent = `#ORD-${latestPurchase.id}`;
+        document.getElementById('paymentId').textContent = latestPurchase.paymentId || 'PAY-000000';
+        document.getElementById('orderDate').textContent = new Date(latestPurchase.purchaseDate).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        });
+        
+        // Update artwork details
+        document.getElementById('artworkTitle').textContent = latestPurchase.artwork.title;
+        document.getElementById('artworkPrice').textContent = latestPurchase.artwork.price;
+        document.getElementById('artworkImage').src = latestPurchase.artwork.image;
+        document.getElementById('artworkImage').alt = latestPurchase.artwork.title;
+      }
+    });
+  </script>
+</body>
+</html>

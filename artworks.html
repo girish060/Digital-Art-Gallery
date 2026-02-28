@@ -272,8 +272,21 @@
         image: 'https://pictures.artify.tn/app/artify_logo_xs.png',
         handler: function(response) {
           alert(`Payment successful! Payment ID: ${response.razorpay_payment_id}`);
-          // Here you can save order details to Supabase
+          
+          const purchase = {
+            id: Date.now(),
+            artwork: artwork,
+            purchaseDate: new Date().toISOString(),
+            status: 'completed',
+            paymentId: response.razorpay_payment_id
+          };
+          
+          const purchases = JSON.parse(localStorage.getItem('purchases') || '[]');
+          purchases.push(purchase);
+          localStorage.setItem('purchases', JSON.stringify(purchases));
+          
           removeFromCart(artwork);
+          window.location.href = 'order-confirmation.html';
         },
         prefill: {
           email: session.user.email,
