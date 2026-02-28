@@ -50,7 +50,8 @@
       const price = document.getElementById("price").value;
       const file = document.getElementById("imageInput").files[0];
 
-      const fileName = `${session.user.id}/${Date.now()}_${file.name}`;
+      const sanitizedName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const fileName = `${session.user.id}/${Date.now()}_${sanitizedName}`;
 
       // Upload image to Supabase storage
       const { error: uploadError } = await supabase.storage
