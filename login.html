@@ -92,8 +92,8 @@
             <img src="https://pictures.artify.tn/app/artify_logo_xs.png" alt="Artify Logo" class="w-16 h-16 rounded-full mx-auto mb-4">
             <h1 class="text-2xl font-bold text-gradient">Artify</h1>
           </div>
-          <h2 id="form-title" class="text-3xl font-bold text-gray-900 mb-2">Create Your Account</h2>
-          <p class="text-gray-600">Join our growing community of artists and art enthusiasts</p>
+          <h2 id="form-title" class="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h2>
+          <p class="text-gray-600">Sign in to your account to continue</p>
         </div>
 
         <!-- Social Login Options -->
@@ -126,14 +126,6 @@
 
         <!-- Auth Form -->
         <form id="auth-form" class="space-y-5">
-          <div id="name-field">
-            <label class="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
-            <div class="relative">
-              <i class="fas fa-user absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-              <input id="name" type="text" placeholder="Enter your full name" 
-                     class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors" />
-            </div>
-          </div>
           
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
@@ -148,7 +140,7 @@
             <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
             <div class="relative">
               <i class="fas fa-lock absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-              <input id="password" type="password" placeholder="Create a password" 
+              <input id="password" type="password" placeholder="Enter your password" 
                      class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors" />
               <button type="button" id="toggle-password" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
                 <i class="fas fa-eye" id="password-icon"></i>
@@ -159,37 +151,11 @@
             </div>
           </div>
 
-          <!-- Terms Checkbox -->
-          <div id="terms-field" class="flex items-start">
-            <input id="terms" type="checkbox" class="mt-1 h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
-            <label for="terms" class="ml-2 text-sm text-gray-700">
-              I agree to the <a href="#" class="text-indigo-600 hover:text-indigo-500">Terms of Service</a> and <a href="#" class="text-indigo-600 hover:text-indigo-500">Privacy Policy</a>
-            </label>
-          </div>
-          
           <button type="submit" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-lg font-semibold hover:from-indigo-700 hover:to-purple-700 transform hover:scale-105 transition-all shadow-lg">
-            <span id="submit-text">Create Account</span>
+            <span id="submit-text">Sign In</span>
           </button>
         </form>
         
-        <!-- Toggle Link -->
-        <div class="text-center mt-6">
-          <p class="text-sm text-gray-600">
-            <span id="toggle-text">Already have an account?</span>
-            <a href="#" id="toggle-link" class="text-indigo-600 font-medium hover:text-indigo-500 ml-1">Sign in</a>
-          </p>
-        </div>
-
-        <!-- Success Message -->
-        <div id="success-message" class="hidden mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-          <div class="flex items-center">
-            <i class="fas fa-check-circle text-green-500 mr-3"></i>
-            <div>
-              <h3 class="text-sm font-medium text-green-800">Account created successfully!</h3>
-              <p class="text-sm text-green-700 mt-1">Redirecting to dashboard...</p>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   </div>
@@ -197,18 +163,13 @@
   <!-- Enhanced Auth Script -->
   <script>
     // State management
-    let isSignup = true;
+    let isSignup = false;
     let isLoading = false;
 
     // DOM elements
-    const nameField = document.getElementById('name-field');
-    const termsField = document.getElementById('terms-field');
     const formTitle = document.getElementById('form-title');
     const submitText = document.getElementById('submit-text');
-    const toggleLink = document.getElementById('toggle-link');
-    const toggleText = document.getElementById('toggle-text');
     const authForm = document.getElementById('auth-form');
-    const successMessage = document.getElementById('success-message');
     const togglePasswordBtn = document.getElementById('toggle-password');
     const passwordInput = document.getElementById('password');
     const passwordIcon = document.getElementById('password-icon');
@@ -216,15 +177,12 @@
     // Initialize
     document.addEventListener('DOMContentLoaded', function() {
       initializeEventListeners();
-      showSignupForm();
+      showLoginForm();
     });
 
 
 
     function initializeEventListeners() {
-      // Toggle between signup/login
-      toggleLink.addEventListener('click', handleToggleMode);
-      
       // Form submission
       authForm.addEventListener('submit', handleFormSubmit);
       
@@ -241,34 +199,9 @@
       });
     }
 
-    function handleToggleMode(e) {
-      e.preventDefault();
-      isSignup = !isSignup;
-      
-      if (isSignup) {
-        showSignupForm();
-      } else {
-        showLoginForm();
-      }
-    }
-
-    function showSignupForm() {
-      formTitle.textContent = 'Create Your Account';
-      submitText.textContent = 'Create Account';
-      toggleText.textContent = 'Already have an account?';
-      toggleLink.textContent = 'Sign in';
-      nameField.style.display = 'block';
-      termsField.style.display = 'flex';
-      document.querySelector('p').textContent = 'Join thousands of artists and art lovers';
-    }
-
     function showLoginForm() {
       formTitle.textContent = 'Welcome Back';
       submitText.textContent = 'Sign In';
-      toggleText.textContent = "Don't have an account?";
-      toggleLink.textContent = 'Sign up';
-      nameField.style.display = 'none';
-      termsField.style.display = 'none';
       document.querySelector('p').textContent = 'Sign in to your account to continue';
     }
 
@@ -324,73 +257,25 @@
       
       if (isLoading) return;
       
-      const name = document.getElementById('name')?.value.trim();
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
-      const terms = document.getElementById('terms')?.checked;
 
       // Validation
-      if (isSignup) {
-        if (!name || !email || !password) {
-          showNotification("Please fill in all fields.", "error");
-          return;
-        }
-        if (!terms) {
-          showNotification("Please agree to the terms and conditions.", "error");
-          return;
-        }
-        if (password.length < 8) {
-          showNotification("Password must be at least 8 characters long.", "error");
-          return;
-        }
-      } else {
-        if (!email || !password) {
-          showNotification("Please fill in all fields.", "error");
-          return;
-        }
+      if (!email || !password) {
+        showNotification("Please fill in all fields.", "error");
+        return;
       }
 
       // Show loading state
       setLoadingState(true);
 
       try {
-        if (isSignup) {
-          await handleSignup(name, email, password);
-        } else {
-          await handleLogin(email, password);
-        }
+        await handleLogin(email, password);
       } catch (error) {
         showNotification(error.message, "error");
       } finally {
         setLoadingState(false);
       }
-    }
-
-    async function handleSignup(name, email, password) {
-      const supabase = await initSupabase();
-      if (!supabase) throw new Error('Supabase configuration error. Please check your connection.');
-      
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { 
-          data: { name },
-          emailRedirectTo: window.location.origin + '/login.html'
-        }
-      });
-      
-      if (error) {
-        if (error.message.includes('User already registered')) {
-          throw new Error('This email is already registered. Please sign in instead.');
-        }
-        throw error;
-      }
-      
-      showSuccessMessage();
-      showNotification('Registration successful! Welcome to Artify!', 'success');
-      setTimeout(() => { 
-        window.location.href = 'index.html';
-      }, 3000);
     }
 
     async function handleLogin(email, password) {
@@ -427,14 +312,9 @@
         submitBtn.classList.add('opacity-75');
       } else {
         submitBtn.disabled = false;
-        submitBtn.innerHTML = `<span id="submit-text">${isSignup ? 'Create Account' : 'Sign In'}</span>`;
+        submitBtn.innerHTML = `<span id="submit-text">Sign In</span>`;
         submitBtn.classList.remove('opacity-75');
       }
-    }
-
-    function showSuccessMessage() {
-      successMessage.classList.remove('hidden');
-      authForm.style.display = 'none';
     }
 
     function showNotification(message, type = 'info') {

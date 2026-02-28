@@ -83,7 +83,7 @@ function updateGlobalUI(user) {
     if (userDropdown) userDropdown.classList.add('hidden');
     if (userBtn) userBtn.onclick = () => userMenu.classList.toggle('hidden');
   } else {
-    if (userDisplay) userDisplay.textContent = 'Sign In/Sign Up';
+    if (userDisplay) userDisplay.textContent = 'Sign In';
     if (loginLink) loginLink.classList.remove('hidden');
     if (userMenu) userMenu.classList.add('hidden');
     if (userDropdown) userDropdown.classList.add('hidden');
