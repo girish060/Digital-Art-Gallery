@@ -115,3 +115,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 });
+
+async function signInWithGoogle() {
+  const sb = await initSupabase();
+  if (!sb) {
+    alert('Supabase not initialized');
+    return;
+  }
+
+  try {
+    const { data, error } = await sb.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: 'https://digitalartgalleryhackathon.netlify.app/login'
+      }
+    });
+
+    if (error) throw error;
+
+    // OAuth will redirect automatically
+  } catch (error) {
+    console.error('Google signin error:', error);
+    alert('Google signin failed: ' + error.message);
+  }
+}

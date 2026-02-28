@@ -515,28 +515,11 @@
 
     async function handleSocialLogin(e) {
       const provider = e.currentTarget.getAttribute('data-social');
-      if (!provider) return;
       
-      try {
-        const supabase = await initSupabase();
-        if (!supabase) {
-          showNotification('Supabase project not reachable. Check your dashboard for an ORANGE dot.', 'error');
-          testProjectConnectivity();
-          return;
-        }
-        
-        console.log(`Starting ${provider} login redirect to:`, window.location.origin + '/index.html');
-        
-        const { data, error } = await supabase.auth.signInWithOAuth({
-          provider: provider,
-          options: {
-            redirectTo: window.location.origin + '/index.html'
-          }
-        });
-        
-        if (error) throw error;
-      } catch (error) {
-        showNotification(error.message, 'error');
+      if (provider === 'google') {
+        signInWithGoogle();
+      } else {
+        showNotification(`${provider.charAt(0).toUpperCase() + provider.slice(1)} login coming soon!`, 'info');
       }
     }
 
