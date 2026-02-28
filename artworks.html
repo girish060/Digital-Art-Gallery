@@ -165,10 +165,55 @@
     let currentFilter = 'all';
     let currentSort = 'featured';
 
-    let artworks = [];
+    let artworks = [
+      {
+        title: "Digital Sunset",
+        price: "2999",
+        category: "digital",
+        image: "https://picsum.photos/seed/sunset/400/300",
+        artist: "Artist One",
+        rating: 4.8,
+        sales: 12,
+        isDemo: true
+      },
+      {
+        title: "Abstract Dreams",
+        price: "4999",
+        category: "abstract",
+        image: "https://picsum.photos/seed/abstract/400/300",
+        artist: "Artist Two",
+        rating: 4.9,
+        sales: 8,
+        isDemo: true
+      },
+      {
+        title: "Nature Photography",
+        price: "1999",
+        category: "photography",
+        image: "https://picsum.photos/seed/nature/400/300",
+        artist: "Artist Three",
+        rating: 4.7,
+        sales: 15,
+        isDemo: true
+      },
+      {
+        title: "Traditional Painting",
+        price: "7999",
+        category: "traditional",
+        image: "https://picsum.photos/seed/traditional/400/300",
+        artist: "Artist Four",
+        rating: 5.0,
+        sales: 5,
+        isDemo: true
+      }
+    ];
+
     async function loadArtworks() {
       const supabase = await initSupabase();
-      if (!supabase) return;
+      if (!supabase) {
+        renderArtworks(artworks);
+        return;
+      }
 
       try {
         const { data, error } = await supabase
@@ -178,7 +223,7 @@
 
         if (error) throw error;
 
-        artworks = (Array.isArray(data) ? data : []).map(item => ({
+        const dbArtworks = (Array.isArray(data) ? data : []).map(item => ({
           title: item.title || "Untitled",
           price: String(item.price ?? "0"),
           category: item.category || "digital",
@@ -188,10 +233,12 @@
           sales: 0,
           isDemo: false
         }));
+        
+        artworks = [...dbArtworks, ...artworks];
         renderArtworks(artworks);
       } catch (e) {
         console.error("Error loading artworks:", e.message);
-        renderArtworks([]);
+        renderArtworks(artworks);
       }
     }
 
@@ -359,10 +406,10 @@
                 <i class="fas fa-shopping-cart mr-1"></i>
                 Cart
   </button>
-              <a href="payment.html?title=${encodeURIComponent(artwork.title)}&price=${encodeURIComponent(artwork.price)}&image=${encodeURIComponent(artwork.image)}" 
-                 class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium">
-    Buy Now
-  </a>
+              <button class="buy-now-btn px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+                      data-title="${artwork.title}" data-image="${artwork.image}" data-price="${artwork.price}">
+                Buy Now
+              </button>
 </div>
                 </div>
               </div>
@@ -371,6 +418,7 @@
       // Add event listeners
       card.querySelector('.wishlist-btn').addEventListener('click', handleWishlist);
       card.querySelector('.add-to-cart-btn').addEventListener('click', handleAddToCart);
+      card.querySelector('.buy-now-btn').addEventListener('click', handleBuyNow);
 
       return card;
     }
@@ -423,6 +471,17 @@
         default:
           return sorted;
       }
+    }
+
+    function handleBuyNow(e) {
+      e.preventDefault();
+      const btn = e.currentTarget;
+      const artwork = {
+        title: btn.getAttribute('data-title'),
+        image: btn.getAttribute('data-image'),
+        price: btn.getAttribute('data-price')
+      };
+      purchaseArtwork(artwork);
     }
 
     function handleWishlist(e) {
