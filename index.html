@@ -7,6 +7,9 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet"/>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script src="auth.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
     * { font-family: 'Inter', sans-serif; }
@@ -255,8 +258,9 @@
                   <i class="fas fa-shopping-cart mr-1"></i>
                   Cart
                 </button>
-                <button class="px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium">
-                  View
+                <button class="buy-now-btn px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+                        data-title="Black Swan" data-image="https://img.freepik.com/free-photo/black-swan-cygnus-atratus-illustrated-by-elizabeth-gould_53876-65218.jpg" data-price="2500">
+                  Buy Now
                 </button>
               </div>
             </div>
@@ -293,8 +297,9 @@
                   <i class="fas fa-shopping-cart mr-1"></i>
                   Cart
                 </button>
-                <button class="px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium">
-                  View
+                <button class="buy-now-btn px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+                        data-title="Black Swan" data-image="https://img.freepik.com/free-photo/black-swan-cygnus-atratus-illustrated-by-elizabeth-gould_53876-65218.jpg" data-price="2500">
+                  Buy Now
                 </button>
               </div>
             </div>
@@ -331,8 +336,9 @@
                   <i class="fas fa-shopping-cart mr-1"></i>
                   Cart
                 </button>
-                <button class="px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium">
-                  View
+                <button class="buy-now-btn px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+                        data-title="Black Swan" data-image="https://img.freepik.com/free-photo/black-swan-cygnus-atratus-illustrated-by-elizabeth-gould_53876-65218.jpg" data-price="2500">
+                  Buy Now
                 </button>
               </div>
             </div>
@@ -369,8 +375,9 @@
                   <i class="fas fa-shopping-cart mr-1"></i>
                   Cart
                 </button>
-                <button class="px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium">
-                  View
+                <button class="buy-now-btn px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+                        data-title="Black Swan" data-image="https://img.freepik.com/free-photo/black-swan-cygnus-atratus-illustrated-by-elizabeth-gould_53876-65218.jpg" data-price="2500">
+                  Buy Now
                 </button>
               </div>
             </div>
@@ -818,11 +825,14 @@
       });
 
       modal.querySelector('.checkout-btn').addEventListener('click', () => {
-        // For demo, redirect to payment page with first item
         if (cart.length > 0) {
-          const firstItem = cart[0];
-          window.location.href = `payment.html?title=${encodeURIComponent(firstItem.title)}&price=${encodeURIComponent(firstItem.price)}&image=${encodeURIComponent(firstItem.image)}`;
+          purchaseArtwork(cart[0]);
         }
+      });
+
+      // Add Buy Now button listeners
+      document.querySelectorAll('.buy-now-btn').forEach(btn => {
+        btn.addEventListener('click', handleBuyNow);
       });
 
       // Remove individual items
@@ -863,6 +873,68 @@
         }, 300);
       }, 3000);
     }
+
+    // Razorpay payment function
+    async function purchaseArtwork(artwork) {
+      const supabase = await initSupabase();
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        alert('Please sign in to purchase artwork');
+        window.location.href = 'login.html';
+        return;
+      }
+
+      const options = {
+        key: 'rzp_live_SLdmbSf47ID8vB', // Live Razorpay key
+        amount: artwork.price * 100, // Convert to paise
+        currency: 'INR',
+        name: 'Artify',
+        description: `Purchase: ${artwork.title}`,
+        image: 'https://pictures.artify.tn/app/artify_logo_xs.png',
+        handler: function(response) {
+          alert(`Payment successful! Payment ID: ${response.razorpay_payment_id}`);
+          removeFromCart(artwork);
+        },
+        prefill: {
+          email: session.user.email,
+          name: session.user.user_metadata?.name || session.user.email
+        },
+        theme: {
+          color: '#6366f1'
+        }
+      };
+
+      const rzp = new Razorpay(options);
+      rzp.open();
+    }
+
+    function handleBuyNow(e) {
+      e.preventDefault();
+      const btn = e.currentTarget;
+      const artwork = {
+        title: btn.getAttribute('data-title'),
+        image: btn.getAttribute('data-image'),
+        price: btn.getAttribute('data-price')
+      };
+      purchaseArtwork(artwork);
+    }
+
+    function removeFromCart(artwork) {
+      const index = cart.findIndex(item => item.title === artwork.title);
+      if (index > -1) {
+        cart.splice(index, 1);
+        localStorage.setItem('cart', JSON.stringify(cart));
+        updateCartCount();
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initialize Buy Now button listeners
+      document.querySelectorAll('.buy-now-btn').forEach(btn => {
+        btn.addEventListener('click', handleBuyNow);
+      });
+    });
 
     // Newsletter subscription
     const footerForm = document.querySelector('footer form');
