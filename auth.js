@@ -73,15 +73,21 @@ function updateGlobalUI(user) {
   const userDisplay = document.getElementById('userDisplay');
   const loginLink = document.getElementById('loginLink');
   const userMenu = document.getElementById('userMenu');
+  const userDropdown = document.getElementById('userDropdown');
+  const userBtn = document.getElementById('userBtn');
 
   if (user) {
     if (userDisplay) userDisplay.textContent = user.name;
     if (loginLink) loginLink.classList.add('hidden');
     if (userMenu) userMenu.classList.remove('hidden');
+    if (userDropdown) userDropdown.classList.add('hidden');
+    if (userBtn) userBtn.onclick = () => userMenu.classList.toggle('hidden');
   } else {
     if (userDisplay) userDisplay.textContent = 'Sign In/Sign Up';
     if (loginLink) loginLink.classList.remove('hidden');
     if (userMenu) userMenu.classList.add('hidden');
+    if (userDropdown) userDropdown.classList.add('hidden');
+    if (userBtn) userBtn.onclick = () => window.location.href = 'login.html';
   }
 }
 
