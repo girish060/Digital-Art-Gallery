@@ -5,25 +5,16 @@ let authStateListeners = [];
 async function initSupabase() {
   if (sb) return sb;
   try {
-    // Determine the base URL for the API call
-    const baseUrl = window.location.origin;
-    const cfgRes = await fetch(`${baseUrl}/api/public-config`);
-    
-    if (!cfgRes.ok) {
-      throw new Error(`Failed to fetch public config: ${cfgRes.status} ${cfgRes.statusText}`);
-    }
-    
-    const cfg = await cfgRes.json();
-    console.log("Supabase config received:", cfg.supabaseUrl ? "URL OK" : "URL MISSING");
-    
-    if (cfg.supabaseUrl && cfg.supabaseAnonKey && !/YOUR_SUPABASE/i.test(cfg.supabaseUrl)) {
-      sb = window.supabase.createClient(cfg.supabaseUrl.trim(), cfg.supabaseAnonKey.trim(), {
-        auth: {
-          persistSession: true,
-          autoRefreshToken: true,
-          detectSessionInUrl: true
-        }
-      });
+    // Hardcoded for production (anon key is public)
+    const supabaseUrl = 'https://crmsrahbjdlfjrmuvfoe.supabase.co';
+    const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNybXNyYWhiamRsZmpybXV2Zm9lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyNzEzMTYsImV4cCI6MjA4Nzg0NzMxNn0.Ln0Jv4-0bhDGooDQg35--PAvQrjFBhyWqj_Nr-qmQv8';
+    sb = window.supabase.createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true
+      }
+    });
       
       // Listen for auth changes
       sb.auth.onAuthStateChange((event, session) => {
