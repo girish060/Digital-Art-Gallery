@@ -72,18 +72,15 @@ async function checkUserSession() {
 function updateGlobalUI(user) {
   const userDisplay = document.getElementById('userDisplay');
   const loginLink = document.getElementById('loginLink');
-  const signupLink = document.getElementById('signupLink');
   const userMenu = document.getElementById('userMenu');
 
   if (user) {
     if (userDisplay) userDisplay.textContent = user.name;
     if (loginLink) loginLink.classList.add('hidden');
-    if (signupLink) signupLink.classList.add('hidden');
     if (userMenu) userMenu.classList.remove('hidden');
   } else {
-    if (userDisplay) userDisplay.textContent = 'Sign In';
+    if (userDisplay) userDisplay.textContent = 'Sign In/Sign Up';
     if (loginLink) loginLink.classList.remove('hidden');
-    if (signupLink) signupLink.classList.remove('hidden');
     if (userMenu) userMenu.classList.add('hidden');
   }
 }
