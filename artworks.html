@@ -50,15 +50,6 @@
             <i class="fas fa-user-circle text-xl"></i>
             <span class="hidden md:inline font-medium" id="userDisplay">Sign In</span>
           </button>
-          
-          <!-- Dropdown Menu -->
-          <div id="userDropdown" class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border hidden">
-            <div class="py-2">
-              <a href="login.html" class="block px-4 py-2 text-gray-800 hover:bg-gray-100 transition-colors" id="loginLink">
-                <i class="fas fa-sign-in-alt mr-2"></i> Sign In
-              </a>
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -331,20 +322,14 @@
       // Sort functionality
       document.getElementById('sortSelect').addEventListener('change', handleSort);
       
-      // User dropdown
+      // User button direct link
       document.getElementById('userBtn').addEventListener('click', function() {
-        document.getElementById('userDropdown').classList.toggle('hidden');
+        window.location.href = 'login.html';
       });
 
       // Cart button
       document.getElementById('cartBtn').addEventListener('click', showCartModal);
       
-      // Click outside to close dropdown
-      document.addEventListener('click', function(e) {
-        if (!e.target.closest('#userBtn') && !e.target.closest('#userDropdown')) {
-          document.getElementById('userDropdown').classList.add('hidden');
-        }
-      });
     }
 
     function renderArtworks(artworksToRender = artworks) {

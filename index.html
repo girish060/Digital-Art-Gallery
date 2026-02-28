@@ -51,28 +51,6 @@
             <i class="fas fa-user-circle text-xl"></i>
             <span class="hidden md:inline font-medium" id="userDisplay">Sign In</span>
           </button>
-          <div id="userDropdown" class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border hidden">
-            <div class="py-2">
-              <a href="login.html" class="block px-4 py-2 text-gray-800 hover:bg-gray-100 transition-colors" id="loginLink">
-                <i class="fas fa-sign-in-alt mr-2"></i> Sign In
-              </a>
-              <a href="join.html" class="block px-4 py-2 text-gray-800 hover:bg-gray-100 transition-colors" id="signupLink">
-                <i class="fas fa-user-plus mr-2"></i> Sign Up
-              </a>
-              <div class="hidden" id="userMenu">
-                <hr class="my-2">
-                <a href="#" class="block px-4 py-2 text-gray-800 hover:bg-gray-100 transition-colors">
-                  <i class="fas fa-user mr-2"></i> Profile
-                </a>
-                <a href="#" class="block px-4 py-2 text-gray-800 hover:bg-gray-100 transition-colors">
-                  <i class="fas fa-heart mr-2"></i> Wishlist
-                </a>
-                <a href="#" class="block px-4 py-2 text-gray-800 hover:bg-gray-100 transition-colors" id="logoutBtn">
-                  <i class="fas fa-sign-out-alt mr-2"></i> Logout
-                </a>
-              </div>
-            </div>
-          </div>
         </div>
         <button id="mobileMenuBtn" class="md:hidden p-2 text-gray-700 hover:text-indigo-600">
           <i class="fas fa-bars text-xl"></i>
@@ -594,12 +572,6 @@
     const cartBtn = document.getElementById("cartBtn");
     const cartCount = document.getElementById("cartCount");
     const userBtn = document.getElementById("userBtn");
-    const userDropdown = document.getElementById("userDropdown");
-    const userDisplay = document.getElementById("userDisplay");
-    const userMenu = document.getElementById("userMenu");
-    const loginLink = document.getElementById("loginLink");
-    const signupLink = document.getElementById("signupLink");
-    const logoutBtn = document.getElementById("logoutBtn");
     const mobileMenuBtn = document.getElementById("mobileMenuBtn");
     const mobileMenu = document.getElementById("mobileMenu");
 
@@ -632,9 +604,11 @@
         btn.addEventListener('click', handleFilter);
       });
 
-      // User dropdown
+      // User button direct link
       if (userBtn) {
-        userBtn.addEventListener('click', toggleUserDropdown);
+        userBtn.addEventListener('click', () => {
+          window.location.href = 'login.html';
+        });
       }
 
       // Cart button
@@ -645,11 +619,6 @@
       // Mobile menu
       if (mobileMenuBtn) {
         mobileMenuBtn.addEventListener('click', toggleMobileMenu);
-      }
-
-      // Logout
-      if (logoutBtn) {
-        logoutBtn.addEventListener('click', handleLogout);
       }
 
       // Close dropdowns when clicking outside
@@ -699,11 +668,6 @@
       });
     }
 
-    // User dropdown toggle
-    function toggleUserDropdown() {
-      userDropdown.classList.toggle('hidden');
-    }
-
     // Mobile menu toggle
     function toggleMobileMenu() {
       mobileMenu.classList.toggle('hidden');
@@ -711,9 +675,6 @@
 
     // Handle outside clicks
     function handleOutsideClick(e) {
-      if (!userBtn.contains(e.target) && !userDropdown.contains(e.target)) {
-        userDropdown.classList.add('hidden');
-      }
       if (!mobileMenuBtn.contains(e.target) && !mobileMenu.contains(e.target)) {
         mobileMenu.classList.add('hidden');
       }
