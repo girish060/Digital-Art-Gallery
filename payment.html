@@ -6,6 +6,9 @@
   <title>Payment - Artify</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script src="auth.js"></script>
   
 </head>
 
@@ -344,6 +347,15 @@
     async function handleFormSubmit(e) {
       e.preventDefault();
       
+      const supabase = await initSupabase();
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        alert('Please sign in to complete purchase');
+        window.location.href = 'login.html';
+        return;
+      }
+      
       const payButton = document.getElementById('pay-button');
       const originalText = payButton.innerHTML;
       
@@ -351,28 +363,54 @@
       payButton.disabled = true;
       
       try {
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        const totalAmount = parseFloat(document.getElementById('total-amount').textContent.replace(/[₹,]/g, ''));
         
-        const purchase = {
-          id: Date.now(),
-          artwork: {
-            title: decodeURIComponent(title),
-            price: document.getElementById('total-amount').textContent,
-            image: decodeURIComponent(image)
+        const options = {
+          key: 'rzp_live_SLdmbSf47ID8vB', // Live Razorpay key
+          amount: totalAmount * 100, // Convert to paise
+          currency: 'INR',
+          name: 'Artify',
+          description: `Purchase: ${decodeURIComponent(title)}`,
+          image: 'https://pictures.artify.tn/app/artify_logo_xs.png',
+          handler: function(response) {
+            alert(`Payment successful! Payment ID: ${response.razorpay_payment_id}`);
+            
+            const purchase = {
+              id: Date.now(),
+              artwork: {
+                title: decodeURIComponent(title),
+                price: document.getElementById('total-amount').textContent,
+                image: decodeURIComponent(image)
+              },
+              purchaseDate: new Date().toISOString(),
+              status: 'completed',
+              paymentId: response.razorpay_payment_id
+            };
+            
+            const purchases = JSON.parse(localStorage.getItem('purchases') || '[]');
+            purchases.push(purchase);
+            localStorage.setItem('purchases', JSON.stringify(purchases));
+            
+            showNotification('Payment successful! Redirecting...', 'success');
+            
+            setTimeout(() => {
+              window.location.href = 'index.html?purchase=success';
+            }, 2000);
           },
-          purchaseDate: new Date().toISOString(),
-          status: 'completed'
+          prefill: {
+            email: session.user.email,
+            name: session.user.user_metadata?.name || session.user.email
+          },
+          theme: {
+            color: '#6366f1'
+          }
         };
+
+        const rzp = new Razorpay(options);
+        rzp.open();
         
-        const purchases = JSON.parse(localStorage.getItem('purchases') || '[]');
-        purchases.push(purchase);
-        localStorage.setItem('purchases', JSON.stringify(purchases));
-        
-        showNotification('Payment successful! Redirecting...', 'success');
-        
-        setTimeout(() => {
-          window.location.href = 'index.html?purchase=success';
-        }, 2000);
+        payButton.innerHTML = originalText;
+        payButton.disabled = false;
         
       } catch (error) {
         showNotification('Payment failed. Please try again.', 'error');
