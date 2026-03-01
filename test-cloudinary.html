@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloudinary Upload Test - Artify</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="auth.js"></script>
+    <script src="uploadCloudinary.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-8">
+    <div class="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-6">
+        <h1 class="text-2xl font-bold text-gray-800 mb-6">Cloudinary Upload Test</h1>
+        
+        <!-- Configuration Section -->
+        <div class="mb-6 p-4 bg-blue-50 rounded-lg">
+            <h2 class="text-lg font-semibold mb-2">Cloudinary Configuration</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Cloud Name</label>
+                    <input type="text" id="cloudName" placeholder="your-cloud-name" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Upload Preset</label>
+                    <input type="text" id="uploadPreset" placeholder="your-upload-preset" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+            <button id="saveConfig" class="mt-3 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+                Save Configuration
+            </button>
+        </div>
+
+        <!-- Authentication Status -->
+        <div id="authStatus" class="mb-6 p-4 rounded-lg">
+            <h2 class="text-lg font-semibold mb-2">Authentication Status</h2>
+            <div id="authInfo"></div>
+        </div>
+
+        <!-- Upload Test -->
+        <div class="mb-6">
+            <h2 class="text-lg font-semibold mb-2">Test Upload</h2>
+            <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                <input type="file" id="testFile" accept="image/*" class="hidden">
+                <div id="dropZone" class="cursor-pointer">
+                    <svg class="w-12 h-12 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0l-4 4m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/>
+                    </svg>
+                    <p class="text-gray-500">Click to upload or drag and drop</p>
+                    <p class="text-xs text-gray-400 mt-1">PNG, JPG, GIF up to 10MB</p>
+                </div>
+            </div>
+            
+            <div id="preview" class="mt-4 hidden">
+                <img id="previewImg" class="max-w-xs mx-auto rounded-lg shadow-md">
+                <p id="fileInfo" class="text-sm text-gray-600 mt-2 text-center"></p>
+            </div>
+            
+            <div id="progress" class="mt-4 hidden">
+                <div class="bg-gray-200 rounded-full h-2.5">
+                    <div id="progressBar" class="bg-blue-600 h-2.5 rounded-full" style="width: 0%"></div>
+                </div>
+                <p id="progressText" class="text-sm text-gray-600 mt-1 text-center">0%</p>
+            </div>
+            
+            <button id="uploadBtn" class="mt-4 px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:opacity-50" disabled>
+                Upload to Cloudinary
+            </button>
+        </div>
+
+        <!-- Results -->
+        <div id="results" class="mt-6 p-4 bg-gray-50 rounded-lg hidden">
+            <h3 class="text-lg font-semibold mb-2">Upload Results</h3>
+            <div id="resultContent"></div>
+        </div>
+
+        <!-- Test Database Insert -->
+        <div class="mt-6">
+            <h2 class="text-lg font-semibold mb-2">Test Database Insert</h2>
+            <button id="testDbBtn" class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors">
+                Test Database Insert
+            </button>
+            <div id="dbResults" class="mt-4 p-4 bg-gray-50 rounded-lg hidden">
+                <h3 class="text-lg font-semibold mb-2">Database Results</h3>
+                <div id="dbResultContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration management
+        let cloudinaryConfig = {
+            cloudName: localStorage.getItem('cloudinaryCloudName') || 'dd6ons4ie',
+            uploadPreset: localStorage.getItem('cloudinaryUploadPreset') || 'Artify'
+        };
+
+        // Update input fields with saved config
+        document.getElementById('cloudName').value = cloudinaryConfig.cloudName;
+        document.getElementById('uploadPreset').value = cloudinaryConfig.uploadPreset;
+
+        // Save configuration
+        document.getElementById('saveConfig').addEventListener('click', function() {
+            const cloudName = document.getElementById('cloudName').value.trim();
+            const uploadPreset = document.getElementById('uploadPreset').value.trim();
+            
+            if (cloudName && uploadPreset) {
+                cloudinaryConfig.cloudName = cloudName;
+                cloudinaryConfig.uploadPreset = uploadPreset;
+                
+                localStorage.setItem('cloudinaryCloudName', cloudName);
+                localStorage.setItem('cloudinaryUploadPreset', uploadPreset);
+                
+                // Update the global Cloudinary config
+                if (typeof getCloudinaryConfig === 'function') {
+                    window.getCloudinaryConfig = function() {
+                        return cloudinaryConfig;
+                    };
+                }
+                
+                alert('Configuration saved successfully!');
+                console.log('Cloudinary config updated:', cloudinaryConfig);
+            } else {
+                alert('Please enter both Cloud Name and Upload Preset');
+            }
+        });
+
+        // File handling
+        let selectedFile = null;
+        let imageData = null;
+
+        const fileInput = document.getElementById('testFile');
+        const dropZone = document.getElementById('dropZone');
+        const preview = document.getElementById('preview');
+        const previewImg = document.getElementById('previewImg');
+        const fileInfo = document.getElementById('fileInfo');
+        const uploadBtn = document.getElementById('uploadBtn');
+
+        // File input change
+        fileInput.addEventListener('change', function(e) {
+            handleFileSelect(e.target.files[0]);
+        });
+
+        // Drag and drop
+        dropZone.addEventListener('click', function() {
+            fileInput.click();
+        });
+
+        dropZone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            dropZone.classList.add('border-blue-500');
+        });
+
+        dropZone.addEventListener('dragleave', function() {
+            dropZone.classList.remove('border-blue-500');
+        });
+
+        dropZone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            dropZone.classList.remove('border-blue-500');
+            handleFileSelect(e.dataTransfer.files[0]);
+        });
+
+        function handleFileSelect(file) {
+            if (file && file.type.startsWith('image/')) {
+                selectedFile = file;
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imageData = e.target.result;
+                    previewImg.src = imageData;
+                    fileInfo.textContent = `${file.name} (${formatFileSize(file.size)})`;
+                    preview.classList.remove('hidden');
+                    uploadBtn.disabled = false;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Upload progress tracking
+        function updateProgress(percent) {
+            document.getElementById('progressBar').style.width = percent + '%';
+            document.getElementById('progressText').textContent = percent + '%';
+        }
+
+        // Listen for upload progress events
+        window.addEventListener('uploadProgress', function(e) {
+            updateProgress(e.detail.progress);
+        });
+
+        // Upload button
+        uploadBtn.addEventListener('click', async function() {
+            if (!selectedFile) {
+                alert('Please select a file first');
+                return;
+            }
+
+            if (!cloudinaryConfig.cloudName || cloudinaryConfig.cloudName === 'YOUR_CLOUD_NAME' ||
+                !cloudinaryConfig.uploadPreset || cloudinaryConfig.uploadPreset === 'YOUR_UPLOAD_PRESET') {
+                alert('Please configure Cloudinary settings first');
+                return;
+            }
+
+            const supabase = await initSupabase();
+            const user = await checkUserSession();
+            
+            if (!user) {
+                alert('Please sign in first');
+                return;
+            }
+
+            document.getElementById('progress').classList.remove('hidden');
+            updateProgress(0);
+
+            try {
+                console.log('Starting Cloudinary upload test...');
+                console.log('Configuration:', cloudinaryConfig);
+                
+                // Test direct file upload
+                const imageUrl = await uploadToCloudinary(selectedFile, cloudinaryConfig.cloudName, cloudinaryConfig.uploadPreset);
+                
+                updateProgress(100);
+                
+                document.getElementById('results').classList.remove('hidden');
+                document.getElementById('resultContent').innerHTML = `
+                    <div class="text-green-600">
+                        <p>✅ Upload successful!</p>
+                        <p class="mt-2"><strong>URL:</strong></p>
+                        <p class="text-sm break-all bg-gray-100 p-2 rounded">${imageUrl}</p>
+                        <p class="mt-2"><strong>Preview:</strong></p>
+                        <img src="${imageUrl}" class="max-w-xs mx-auto mt-2 rounded shadow" alt="Uploaded image">
+                        <button onclick="window.open('${imageUrl}', '_blank')" class="mt-2 px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700">
+                            Open in New Tab
+                        </button>
+                    </div>
+                `;
+                
+                console.log('Cloudinary upload successful:', imageUrl);
+                
+            } catch (error) {
+                console.error('Cloudinary upload failed:', error);
+                
+                document.getElementById('results').classList.remove('hidden');
+                document.getElementById('resultContent').innerHTML = `
+                    <div class="text-red-600">
+                        <p>❌ Upload failed!</p>
+                        <p class="mt-2"><strong>Error:</strong> ${error.message}</p>
+                        <p class="mt-2 text-sm">Make sure your Cloudinary credentials are correct and the upload preset is configured for unsigned uploads.</p>
+                    </div>
+                `;
+            }
+        });
+
+        // Database test
+        document.getElementById('testDbBtn').addEventListener('click', async function() {
+            const supabase = await initSupabase();
+            const user = await checkUserSession();
+            
+            if (!user) {
+                alert('Please sign in first');
+                return;
+            }
+
+            document.getElementById('dbResults').classList.remove('hidden');
+            document.getElementById('dbResultContent').innerHTML = '<div class="text-blue-600">Testing database insert...</div>';
+
+            try {
+                const { data: dbData, error: dbError } = await supabase
+                    .from('artworks')
+                    .insert([{
+                        title: 'Cloudinary Test Artwork',
+                        description: 'This is a test artwork uploaded via Cloudinary',
+                        price: 99.99,
+                        image_url: 'https://via.placeholder.com/400x300',
+                        category: 'digital',
+                        artist_id: user.id,
+                        storage_provider: 'cloudinary'
+                    }])
+                    .select();
+                
+                if (dbError) {
+                    throw dbError;
+                }
+                
+                document.getElementById('dbResultContent').innerHTML = `
+                    <div class="text-green-600">
+                        <p>✅ Database insert successful!</p>
+                        <p class="mt-2"><strong>Inserted data:</strong></p>
+                        <pre class="text-xs bg-gray-100 p-2 rounded overflow-x-auto">${JSON.stringify(dbData, null, 2)}</pre>
+                    </div>
+                `;
+                
+                console.log('Database insert successful:', dbData);
+                
+            } catch (error) {
+                console.error('Database insert failed:', error);
+                
+                document.getElementById('dbResultContent').innerHTML = `
+                    <div class="text-red-600">
+                        <p>❌ Database insert failed!</p>
+                        <p class="mt-2"><strong>Error:</strong> ${error.message}</p>
+                        <p class="mt-2 text-sm">Make sure your Supabase connection is working and the artworks table exists.</p>
+                    </div>
+                `;
+            }
+        });
+
+        // Authentication check
+        async function checkAuth() {
+            const user = await checkUserSession();
+            const authInfo = document.getElementById('authInfo');
+            
+            if (user) {
+                authInfo.innerHTML = `
+                    <div class="text-green-600">
+                        <p>✅ User authenticated: ${user.name || user.email}</p>
+                        <p>User ID: ${user.id}</p>
+                    </div>
+                `;
+                document.getElementById('authStatus').className = 'mb-6 p-4 rounded-lg bg-green-50 border border-green-200';
+            } else {
+                authInfo.innerHTML = `
+                    <div class="text-red-600">
+                        <p>❌ No user authenticated</p>
+                        <p>Please sign in first</p>
+                    </div>
+                `;
+                document.getElementById('authStatus').className = 'mb-6 p-4 rounded-lg bg-red-50 border border-red-200';
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuth();
+            
+            // Update Cloudinary config with saved values
+            if (typeof getCloudinaryConfig === 'function') {
+                window.getCloudinaryConfig = function() {
+                    return cloudinaryConfig;
+                };
+            }
+            
+            if (typeof validateCloudinaryConfig === 'function') {
+                window.validateCloudinaryConfig = function(cloudName, uploadPreset) {
+                    if (!cloudName || cloudName === 'YOUR_CLOUD_NAME') {
+                        console.error('Cloudinary cloud name is not configured');
+                        return false;
+                    }
+                    
+                    if (!uploadPreset || uploadPreset === 'YOUR_UPLOAD_PRESET') {
+                        console.error('Cloudinary upload preset is not configured');
+                        return false;
+                    }
+                    
+                    return true;
+                };
+            }
+            
+            console.log('Cloudinary test page loaded');
+            console.log('Current config:', cloudinaryConfig);
+        });
+    </script>
+</body>
+</html>

@@ -8,7 +8,9 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <script src="auth.js"></script>
+  <script src="uploadCloudinary.js"></script>
 </head>
 
 <body class="bg-gray-100 min-h-screen flex flex-col items-center py-10">
@@ -64,6 +66,47 @@
       </div>
     </div>
   </header>
+
+  <!-- ☁️ Cloudinary Configuration (Replace with your actual credentials) -->
+  <script>
+    // Cloudinary Configuration - Your actual credentials
+    const CLOUDINARY_CLOUD_NAME = 'dd6ons4ie';
+    const CLOUDINARY_UPLOAD_PRESET = 'Artify';
+    
+    // Update the Cloudinary config function
+    function updateCloudinaryConfig() {
+      if (typeof getCloudinaryConfig === 'function') {
+        // Override the default Cloudinary config
+        window.getCloudinaryConfig = function() {
+          return {
+            cloudName: CLOUDINARY_CLOUD_NAME,
+            uploadPreset: CLOUDINARY_UPLOAD_PRESET
+          };
+        };
+        
+        // Also update the validation function
+        window.validateCloudinaryConfig = function(cloudName, uploadPreset) {
+          if (!cloudName || cloudName === 'YOUR_CLOUD_NAME') {
+            console.error('Cloudinary cloud name is not configured');
+            return false;
+          }
+          
+          if (!uploadPreset || uploadPreset === 'YOUR_UPLOAD_PRESET') {
+            console.error('Cloudinary upload preset is not configured');
+            return false;
+          }
+          
+          return true;
+        };
+      }
+    }
+    
+    // Call this when the page loads
+    document.addEventListener('DOMContentLoaded', function() {
+      updateCloudinaryConfig();
+      console.log('Cloudinary configuration loaded');
+    });
+  </script>
 
   <!-- 🎨 Flex Container with Left/Center/Right (Equal Heights) -->
   <div class="flex flex-col md:flex-row items-stretch justify-center mt-10 w-full max-w-6xl space-y-6 md:space-y-0 md:space-x-6 h-[700px]">
@@ -277,7 +320,7 @@
       document.getElementById('mobileMenu').classList.toggle('hidden');
     });
 
-    // Enhanced upload function with better error handling
+    // Enhanced upload function with Cloudinary support
     async function uploadArtworkWithFallback(title, description, price, imageData, selectedFile) {
       try {
         const supabase = await initSupabase();
@@ -290,74 +333,44 @@
           throw new Error('User not authenticated');
         }
 
-        // First, try client-side storage upload
+        // First, try Cloudinary upload (preferred method)
         try {
-          console.log('Attempting client-side storage upload...');
+          console.log('Attempting Cloudinary upload...');
           
-          // Check if storage bucket exists
-          try {
-            const { data: buckets } = await supabase.storage.listBuckets();
-            const artworksBucket = buckets?.find(b => b.name === 'artworks');
-            
-            if (!artworksBucket) {
-              console.warn('Artworks bucket not found, but continuing with upload attempt');
-              // Don't throw error here since bucket might be accessible even if not listed
-            } else {
-              console.log('✅ Artworks bucket found:', artworksBucket);
-            }
-          } catch (bucketError) {
-            console.warn('Could not list buckets, but continuing with upload:', bucketError.message);
-            // Continue with upload attempt even if we can't list buckets
+          // Check if Cloudinary is configured
+          const cloudinaryConfig = getCloudinaryConfig();
+          if (!validateCloudinaryConfig(cloudinaryConfig.cloudName, cloudinaryConfig.uploadPreset)) {
+            console.warn('Cloudinary not configured properly, falling back to Supabase storage');
+            throw new Error('Cloudinary configuration missing');
           }
           
-          const fileName = `${Date.now()}-${(selectedFile?.name || 'image').replace(/[^a-zA-Z0-9._-]/g, '')}`;
-          const uploadPath = `uploads/${fileName}`;
+          console.log('Using Cloudinary cloud:', cloudinaryConfig.cloudName);
           
-          console.log('Uploading to path:', uploadPath);
-          console.log('Storage region: ap-southeast-1');
-          console.log('Storage endpoint: https://crmsrahbjdlfjrmuvfoe.storage.supabase.co/storage/v1/s3');
-          
-          // Get current session for authentication
-          const { data: { session } } = await supabase.auth.getSession();
-          if (!session) {
-            throw new Error('No active session for storage upload');
+          // Upload to Cloudinary
+          let imageUrl;
+          if (selectedFile) {
+            // Upload file directly
+            imageUrl = await uploadToCloudinary(selectedFile, cloudinaryConfig.cloudName, cloudinaryConfig.uploadPreset);
+          } else if (imageData) {
+            // Upload base64 data
+            imageUrl = await uploadBase64ToCloudinary(imageData, cloudinaryConfig.cloudName, cloudinaryConfig.uploadPreset);
+          } else {
+            throw new Error('No file or image data provided');
           }
           
-          // Upload with proper authentication
-          const { error: upError } = await supabase.storage.from('artworks').upload(uploadPath, selectedFile, {
-            contentType: selectedFile?.type || 'image/jpeg',
-            upsert: false,
-            cacheControl: '3600'
-          });
+          console.log('Cloudinary upload successful:', imageUrl);
           
-          if (upError) {
-            console.error('Storage upload error:', upError);
-            console.error('Error details:', JSON.stringify(upError, null, 2));
-            throw new Error(`Storage upload failed: ${upError.message}`);
-          }
-          
-          console.log('Storage upload successful');
-          
-          // Get public URL
-          const { data: pub } = supabase.storage.from('artworks').getPublicUrl(uploadPath);
-          const publicUrl = pub?.publicUrl || '';
-          if (!publicUrl) {
-            throw new Error('Failed to get public URL');
-          }
-          
-          console.log('Got public URL:', publicUrl);
-          console.log('Full storage path:', `https://crmsrahbjdlfjrmuvfoe.storage.supabase.co/storage/v1/object/public/artworks/${uploadPath}`);
-          
-          // Insert into database
+          // Insert into database with Cloudinary URL
           const { data: dbData, error: dbError } = await supabase
             .from('artworks')
             .insert([{
               title,
               description: description,
               price: parseFloat(price),
-              image_url: publicUrl,
+              image_url: imageUrl,
               category: 'digital',
-              artist_id: user.id
+              artist_id: user.id,
+              storage_provider: 'cloudinary' // Track storage provider
             }]);
 
           if (dbError) {
@@ -365,56 +378,144 @@
             throw new Error(`Database insert failed: ${dbError.message}`);
           }
           
-          console.log('Database insert successful');
-          return { success: true, imageUrl: publicUrl };
+          console.log('Database insert successful with Cloudinary URL');
+          return { success: true, imageUrl: imageUrl, provider: 'cloudinary' };
           
-        } catch (clientError) {
-          console.error('Client-side upload failed:', clientError);
+        } catch (cloudinaryError) {
+          console.error('Cloudinary upload failed:', cloudinaryError);
+          console.log('Falling back to Supabase storage...');
           
-          // Fallback: Try server-side upload with base64 image
-          console.log('Attempting server-side upload with base64 image...');
-          
-          // Convert base64 to blob for server upload
-          const response = await fetch('/api/upload-artwork', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session.access_token}`
-            },
-            body: JSON.stringify({
-              title,
-              description,
-              price: parseFloat(price),
-              image_url: imageData, // Use base64 data URL as fallback
-              category: 'digital'
-            })
-          });
-          
-          if (!response.ok) {
-            let errorMessage = `Server upload failed with status: ${response.status}`;
-            try {
-              const errorData = await response.json();
-              errorMessage += ` - ${errorData.error || 'Unknown error'}`;
-            } catch (e) {
-              errorMessage += ' - Invalid response format';
-            }
-            throw new Error(errorMessage);
-          }
-          
-          let result;
-          try {
-            result = await response.json();
-          } catch (e) {
-            throw new Error('Invalid JSON response from server');
-          }
-          console.log('Server-side upload successful');
-          return { success: true, imageUrl: imageData };
+          // Fallback: Try Supabase storage upload
+          return await uploadWithSupabaseStorage(title, description, price, imageData, selectedFile, supabase, user);
         }
         
       } catch (error) {
         console.error('All upload methods failed:', error);
         throw error;
       }
+    }
+
+    // Separate function for Supabase storage upload (fallback)
+    async function uploadWithSupabaseStorage(title, description, price, imageData, selectedFile, supabase, user) {
+      try {
+        console.log('Attempting Supabase storage upload (fallback)...');
+        
+        // Check if storage bucket exists
+        try {
+          const { data: buckets } = await supabase.storage.listBuckets();
+          const artworksBucket = buckets?.find(b => b.name === 'artworks');
+          
+          if (!artworksBucket) {
+            console.warn('Artworks bucket not found, but continuing with upload attempt');
+          } else {
+            console.log('✅ Artworks bucket found:', artworksBucket);
+          }
+        } catch (bucketError) {
+          console.warn('Could not list buckets, but continuing with upload:', bucketError.message);
+        }
+        
+        const fileName = `${Date.now()}-${(selectedFile?.name || 'image').replace(/[^a-zA-Z0-9._-]/g, '')}`;
+        const uploadPath = `uploads/${fileName}`;
+        
+        console.log('Uploading to Supabase path:', uploadPath);
+        
+        // Get current session for authentication
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          throw new Error('No active session for storage upload');
+        }
+        
+        // Upload to Supabase storage
+        const { error: upError } = await supabase.storage.from('artworks').upload(uploadPath, selectedFile, {
+          contentType: selectedFile?.type || 'image/jpeg',
+          upsert: false,
+          cacheControl: '3600'
+        });
+        
+        if (upError) {
+          console.error('Supabase storage upload error:', upError);
+          throw new Error(`Supabase storage upload failed: ${upError.message}`);
+        }
+        
+        console.log('Supabase storage upload successful');
+        
+        // Get public URL
+        const { data: pub } = supabase.storage.from('artworks').getPublicUrl(uploadPath);
+        const publicUrl = pub?.publicUrl || '';
+        if (!publicUrl) {
+          throw new Error('Failed to get public URL from Supabase');
+        }
+        
+        console.log('Got Supabase public URL:', publicUrl);
+        
+        // Insert into database with Supabase URL
+        const { data: dbData, error: dbError } = await supabase
+          .from('artworks')
+          .insert([{
+            title,
+            description: description,
+            price: parseFloat(price),
+            image_url: publicUrl,
+            category: 'digital',
+            artist_id: user.id,
+            storage_provider: 'supabase' // Track storage provider
+          }]);
+
+        if (dbError) {
+          console.error('Database insert error:', dbError);
+          throw new Error(`Database insert failed: ${dbError.message}`);
+        }
+        
+        console.log('Database insert successful with Supabase URL');
+        return { success: true, imageUrl: publicUrl, provider: 'supabase' };
+        
+      } catch (storageError) {
+        console.error('Supabase storage upload failed:', storageError);
+        
+        // Final fallback: Try server-side upload with base64
+        return await uploadWithServerSideFallback(title, description, price, imageData, supabase, user);
+      }
+    }
+
+    // Final fallback: Server-side upload
+    async function uploadWithServerSideFallback(title, description, price, imageData, supabase, user) {
+      console.log('Attempting server-side upload (final fallback)...');
+      
+      const response = await fetch('/api/upload-artwork', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session.access_token}`
+        },
+        body: JSON.stringify({
+          title,
+          description,
+          price: parseFloat(price),
+          image_url: imageData, // Use base64 data URL
+          category: 'digital'
+        })
+      });
+      
+      if (!response.ok) {
+        let errorMessage = `Server upload failed with status: ${response.status}`;
+        try {
+          const errorData = await response.json();
+          errorMessage += ` - ${errorData.error || 'Unknown error'}`;
+        } catch (e) {
+          errorMessage += ' - Invalid response format';
+        }
+        throw new Error(errorMessage);
+      }
+      
+      let result;
+      try {
+        result = await response.json();
+      } catch (e) {
+        throw new Error('Invalid JSON response from server');
+      }
+      
+      console.log('Server-side upload successful');
+      return { success: true, imageUrl: imageData, provider: 'server' };
     }
   </script>
 </body>
