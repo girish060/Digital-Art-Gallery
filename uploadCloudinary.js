@@ -137,17 +137,18 @@ window.uploadBase64ToCloudinary = uploadBase64ToCloudinary;
 window.validateCloudinaryConfig = validateCloudinaryConfig;
 window.getCloudinaryConfig = getCloudinaryConfig;
 
+// Preserve a stable reference to the core function BEFORE any global overrides
+const UPLOAD_TO_CLOUDINARY_CORE = uploadToCloudinary;
+
 // Convenience wrapper that matches the user's simple signature
 async function uploadToCloudinarySimple(file) {
   const cfg = (typeof window.getCloudinaryConfig === 'function')
     ? window.getCloudinaryConfig()
     : getCloudinaryConfig();
-  const uploadToCloudinaryCore = uploadToCloudinary;
-  return await uploadToCloudinaryCore(file, cfg.cloudName, cfg.uploadPreset);
+  return await UPLOAD_TO_CLOUDINARY_CORE(file, cfg.cloudName, cfg.uploadPreset);
 }
 
-// Do not override existing export if pages already rely on the 3-arg version
-if (typeof window.uploadToCloudinary !== 'function' || window.uploadToCloudinary.length !== 3) {
-  window.uploadToCloudinary = uploadToCloudinarySimple;
-}
+// Export both core and wrapper on window (avoid recursion by using stable core reference)
+window.uploadToCloudinaryCore = UPLOAD_TO_CLOUDINARY_CORE;
+window.uploadToCloudinary = uploadToCloudinarySimple;
 window.uploadToCloudinarySimple = uploadToCloudinarySimple;
