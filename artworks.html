@@ -191,58 +191,7 @@
     let currentFilter = 'all';
     let currentSort = 'featured';
 
-    let artworks = [
-      {
-        title: "Digital Sunset",
-        price: "2999",
-        category: "digital",
-        image: "https://picsum.photos/seed/sunset/400/300",
-        artist: "Artist One",
-        rating: 4.8,
-        sales: 12,
-        isDemo: true
-      },
-      {
-        title: "Test Payment Art",
-        price: "1",
-        category: "digital",
-        image: "https://picsum.photos/seed/test/400/300",
-        artist: "Test Artist",
-        rating: 5.0,
-        sales: 0,
-        isDemo: true
-      },
-      {
-        title: "Abstract Dreams",
-        price: "4999",
-        category: "abstract",
-        image: "https://picsum.photos/seed/abstract/400/300",
-        artist: "Artist Two",
-        rating: 4.9,
-        sales: 8,
-        isDemo: true
-      },
-      {
-        title: "Nature Photography",
-        price: "1999",
-        category: "photography",
-        image: "https://picsum.photos/seed/nature/400/300",
-        artist: "Artist Three",
-        rating: 4.7,
-        sales: 15,
-        isDemo: true
-      },
-      {
-        title: "Traditional Painting",
-        price: "7999",
-        category: "traditional",
-        image: "https://picsum.photos/seed/traditional/400/300",
-        artist: "Artist Four",
-        rating: 5.0,
-        sales: 5,
-        isDemo: true
-      }
-    ];
+    let artworks = [];
 
     async function loadArtworks() {
       const supabase = await initSupabase();
@@ -684,6 +633,47 @@
         }, 300);
       }, 3000);
     }
+    async function loadArtworks() {
+      const supabase = await initSupabase();
+      if (!supabase) return;
+      const { data, error } = await supabase
+        .from('artworks')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) return;
+      artworks = data || [];
+      displayArtworks(artworks);
+    }
+
+    function displayArtworks(list) {
+      const grid = document.getElementById('artworksGrid');
+      if (!grid) return;
+      grid.innerHTML = '';
+      list.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'bg-white rounded-2xl shadow-lg overflow-hidden';
+        const img = item.image_url || 'https://picsum.photos/seed/artify/400/300';
+        const price = item.price != null ? `₹${Number(item.price).toLocaleString()}` : '';
+        card.innerHTML = `
+          <div class="relative overflow-hidden group">
+            <img class="h-64 w-full object-cover transition-transform duration-500 group-hover:scale-110" src="${img}" alt="${item.title || 'Artwork'}">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          </div>
+          <div class="p-6">
+            <div class="flex justify-between items-start mb-2">
+              <h3 class="text-lg font-bold text-gray-900">${item.title || 'Untitled'}</h3>
+              <span class="text-sm text-gray-500">${price}</span>
+            </div>
+            <p class="text-gray-600 text-sm">${item.description || ''}</p>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadArtworks();
+    });
   </script>
   
 </body>
