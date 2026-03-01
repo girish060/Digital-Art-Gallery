@@ -102,19 +102,7 @@
             // But for now, let's just proceed with deletion directly.
             
             try {
-              // 1. Delete from storage if it matches our bucket
-              try {
-                const url = new URL(imageUrl || "");
-                const match = url.pathname.match(/\/object\/public\/artworks\/(.+)$/);
-                const path = match ? match[1] : null;
-                if (path) {
-                  await supabase.storage.from('artworks').remove([path]);
-                }
-              } catch (err) {
-                console.warn("Storage removal skipped or failed:", err.message);
-              }
-
-              // 2. Delete from database
+              // Delete from database only
               const { error: delError } = await supabase.from('artworks').delete().eq('id', id);
               if (delError) throw delError;
 

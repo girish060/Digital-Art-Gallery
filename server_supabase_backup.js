@@ -110,15 +110,6 @@ app.delete("/api/artworks/:id", async (req, res) => {
   if (selError) return res.status(500).json({ error: "Failed to read artwork" });
   const row = rows?.[0];
   if (!row) return res.status(404).json({ error: "Not found" });
-  // Attempt storage removal based on public URL
-  try {
-    const url = new URL(row.image_url || "");
-    const match = url.pathname.match(/\/object\/public\/artworks\/(.+)$/);
-    const path = match ? match[1] : null;
-    if (path) {
-      await supabase.storage.from("artworks").remove([path]);
-    }
-  } catch {}
   const { error: delError } = await supabase.from("artworks").delete().eq("id", id);
   if (delError) return res.status(500).json({ error: "Failed to delete artwork" });
   res.json({ ok: true });

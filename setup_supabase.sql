@@ -87,5 +87,3 @@ begin
 end;
 $$ language plpgsql security definer;
 
--- Create storage bucket for artworks (optional, run in SQL Editor if needed)
--- insert into storage.buckets (id, name, public) values ('artworks', 'artworks', true);

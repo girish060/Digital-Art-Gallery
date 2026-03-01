@@ -24,6 +24,8 @@
   </form>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="uploadCloudinary.js"></script>
   <script src="auth.js"></script>
 
   <script>
@@ -50,23 +52,14 @@
       const price = document.getElementById("price").value;
       const file = document.getElementById("imageInput").files[0];
 
-      const sanitizedName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-      const fileName = `${session.user.id}/${Date.now()}_${sanitizedName}`;
-
-      // Upload image to Supabase storage
-      const { error: uploadError } = await supabase.storage
-        .from("artworks")
-        .upload(fileName, file);
-
-      if (uploadError) {
-        alert("Upload failed: " + uploadError.message);
+      // Upload image to Cloudinary
+      let imageUrl = '';
+      try {
+        imageUrl = await uploadToCloudinary(file);
+      } catch (e) {
+        alert("Cloudinary upload failed: " + e.message);
         return;
       }
-
-      // Get public URL
-      const imageUrl = supabase.storage
-        .from("artworks")
-        .getPublicUrl(fileName).data.publicUrl;
 
       // Insert record into database
       const { error: insertError } = await supabase
@@ -77,7 +70,8 @@
             description,
             price: parseFloat(price) || null,
             image_url: imageUrl,
-            artist_id: session.user.id
+            artist_id: session.user.id,
+            storage_provider: 'cloudinary'
           }
         ]);
 

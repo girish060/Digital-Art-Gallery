@@ -110,15 +110,6 @@ app.delete("/api/artworks/:id", async (req, res) => {
   if (selError) return res.status(500).json({ error: "Failed to read artwork" });
   const row = rows?.[0];
   if (!row) return res.status(404).json({ error: "Not found" });
-  // Attempt storage removal based on public URL
-  try {
-    const url = new URL(row.image_url || "");
-    const match = url.pathname.match(/\/object\/public\/artworks\/(.+)$/);
-    const path = match ? match[1] : null;
-    if (path) {
-      await supabase.storage.from("artworks").remove([path]);
-    }
-  } catch {}
   const { error: delError } = await supabase.from("artworks").delete().eq("id", id);
   if (delError) return res.status(500).json({ error: "Failed to delete artwork" });
   res.json({ ok: true });
@@ -255,59 +246,7 @@ app.post("/api/artworks/:id/like", async (req, res) => {
   }
 });
 
-// Server-side storage upload using service role
-app.post("/api/upload-to-storage", async (req, res) => {
-  if (!supabase) return res.status(500).json({ error: "Database not configured" });
-
-  try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: "Unauthorized" });
-    }
-
-    const token = authHeader.substring(7);
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !user) {
-      return res.status(401).json({ error: "Invalid token" });
-    }
-
-    const { file_name, data_url } = req.body || {};
-    if (!file_name || !data_url) {
-      return res.status(400).json({ error: "file_name and data_url are required" });
-    }
-
-    const match = /^data:(.+);base64,(.*)$/.exec(data_url);
-    if (!match) {
-      return res.status(400).json({ error: "Invalid data_url format" });
-    }
-    const contentType = match[1];
-    const b64 = match[2];
-
-    const buffer = Buffer.from(b64, "base64");
-    const safeName = String(file_name).replace(/[^a-zA-Z0-9._-]/g, "");
-    const uploadPath = `uploads/${Date.now()}-${safeName}`;
-
-    const { error: upError } = await supabase.storage
-      .from("artworks")
-      .upload(uploadPath, buffer, { contentType, upsert: false });
-
-    if (upError) {
-      console.error("Storage upload error:", upError.message);
-      return res.status(500).json({ error: "Failed to upload to storage: " + upError.message });
-    }
-
-    const { data: pub } = supabase.storage.from("artworks").getPublicUrl(uploadPath);
-    const publicUrl = pub?.publicUrl || "";
-    if (!publicUrl) {
-      return res.status(500).json({ error: "Failed to generate public URL" });
-    }
-
-    res.json({ publicUrl, path: uploadPath });
-  } catch (e) {
-    console.error("Critical error in upload-to-storage:", e.message);
-    res.status(503).json({ error: "Backend unreachable" });
-  }
-});
+// Removed: any server-side Supabase storage handling
 
 // Server-side artwork upload endpoint
 app.post("/api/upload-artwork", async (req, res) => {
