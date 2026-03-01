@@ -70,6 +70,7 @@ async function checkUserSession() {
 }
 
 function updateGlobalUI(user) {
+  console.log('updateGlobalUI called with user:', user);
   const userDisplay = document.getElementById('userDisplay');
   const loginLink = document.getElementById('loginLink');
   const userMenu = document.getElementById('userMenu');
@@ -78,7 +79,11 @@ function updateGlobalUI(user) {
   const logoutBtn = document.getElementById('logoutBtn');
   const signUpBtn = document.querySelector('a[href="signup.html"]');
 
+  console.log('logoutBtn element:', logoutBtn);
+  console.log('signUpBtn element:', signUpBtn);
+
   if (user) {
+    console.log('User logged in, showing logout, hiding signup');
     if (userDisplay) userDisplay.textContent = user.name;
     if (loginLink) loginLink.classList.add('hidden');
     if (userMenu) userMenu.classList.remove('hidden');
@@ -87,6 +92,7 @@ function updateGlobalUI(user) {
     if (signUpBtn) signUpBtn.classList.add('hidden');
     if (userBtn) userBtn.onclick = null;
   } else {
+    console.log('No user, hiding logout, showing signup');
     if (userDisplay) userDisplay.textContent = 'Sign In';
     if (loginLink) loginLink.classList.remove('hidden');
     if (userMenu) userMenu.classList.add('hidden');
