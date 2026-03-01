@@ -139,8 +139,11 @@ window.getCloudinaryConfig = getCloudinaryConfig;
 
 // Convenience wrapper that matches the user's simple signature
 async function uploadToCloudinarySimple(file) {
-  const cfg = getCloudinaryConfig();
-  return await uploadToCloudinary(file, cfg.cloudName, cfg.uploadPreset);
+  const cfg = (typeof window.getCloudinaryConfig === 'function')
+    ? window.getCloudinaryConfig()
+    : getCloudinaryConfig();
+  const uploadToCloudinaryCore = uploadToCloudinary;
+  return await uploadToCloudinaryCore(file, cfg.cloudName, cfg.uploadPreset);
 }
 
 // Do not override existing export if pages already rely on the 3-arg version
