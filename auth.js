@@ -54,7 +54,8 @@ async function checkUserSession() {
     if (session) {
       const user = {
         name: session.user.user_metadata?.name || session.user.user_metadata?.full_name || session.user.email,
-        email: session.user.email
+        email: session.user.email,
+        id: session.user.id
       };
       localStorage.setItem('currentUser', JSON.stringify(user));
       return user;
