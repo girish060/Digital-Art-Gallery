@@ -168,8 +168,7 @@
     <p id="finalPrice" class="text-gray-800 text-sm font-semibold"></p>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="auth.js"></script>
+  
   <script>
     const dropZone = document.getElementById('drop-zone');
     const fileInput = document.getElementById('fileInput');
@@ -349,8 +348,8 @@
           // Upload to Cloudinary
           let imageUrl;
           if (selectedFile) {
-            // Upload file directly
-            imageUrl = await uploadToCloudinary(selectedFile, cloudinaryConfig.cloudName, cloudinaryConfig.uploadPreset);
+            // Upload file directly (simple signature uses global config)
+            imageUrl = await uploadToCloudinary(selectedFile);
           } else if (imageData) {
             // Upload base64 data
             imageUrl = await uploadBase64ToCloudinary(imageData, cloudinaryConfig.cloudName, cloudinaryConfig.uploadPreset);
@@ -481,41 +480,68 @@
     async function uploadWithServerSideFallback(title, description, price, imageData, supabase, user) {
       console.log('Attempting server-side upload (final fallback)...');
       
-      const response = await fetch('/api/upload-artwork', {
+      const accessToken = (await supabase.auth.getSession()).data.session?.access_token || '';
+      if (!accessToken) {
+        throw new Error('No active session for server-side upload');
+      }
+
+      const fileName = `${Date.now()}-${(selectedFile?.name || 'image').replace(/[^a-zA-Z0-9._-]/g, '')}`;
+
+      const uploadResp = await fetch('/api/upload-to-storage', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session.access_token}`
+          'Authorization': `Bearer ${accessToken}`
+        },
+        body: JSON.stringify({
+          file_name: fileName,
+          data_url: imageData
+        })
+      });
+
+      if (!uploadResp.ok) {
+        let msg = `Storage upload failed: ${uploadResp.status}`;
+        try {
+          const err = await uploadResp.json();
+          msg += ` - ${err.error || 'Unknown error'}`;
+        } catch {}
+        throw new Error(msg);
+      }
+
+      const uploadJson = await uploadResp.json();
+      const publicUrl = uploadJson?.publicUrl || '';
+      if (!publicUrl) {
+        throw new Error('No public URL returned from server upload');
+      }
+
+      const dbResp = await fetch('/api/upload-artwork', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`
         },
         body: JSON.stringify({
           title,
           description,
           price: parseFloat(price),
-          image_url: imageData, // Use base64 data URL
+          image_url: publicUrl,
           category: 'digital'
         })
       });
-      
-      if (!response.ok) {
-        let errorMessage = `Server upload failed with status: ${response.status}`;
+
+      if (!dbResp.ok) {
+        let msg = `Server upload failed with status: ${dbResp.status}`;
         try {
-          const errorData = await response.json();
-          errorMessage += ` - ${errorData.error || 'Unknown error'}`;
-        } catch (e) {
-          errorMessage += ' - Invalid response format';
+          const err = await dbResp.json();
+          msg += ` - ${err.error || 'Unknown error'}`;
+        } catch {
+          msg += ' - Invalid response format';
         }
-        throw new Error(errorMessage);
+        throw new Error(msg);
       }
-      
-      let result;
-      try {
-        result = await response.json();
-      } catch (e) {
-        throw new Error('Invalid JSON response from server');
-      }
-      
+
       console.log('Server-side upload successful');
-      return { success: true, imageUrl: imageData, provider: 'server' };
+      return { success: true, imageUrl: publicUrl, provider: 'server' };
     }
   </script>
 </body>

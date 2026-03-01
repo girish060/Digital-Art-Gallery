@@ -133,7 +133,18 @@ function getCloudinaryConfig() {
 }
 
 // Export functions for use in other files
-window.uploadToCloudinary = uploadToCloudinary;
 window.uploadBase64ToCloudinary = uploadBase64ToCloudinary;
 window.validateCloudinaryConfig = validateCloudinaryConfig;
 window.getCloudinaryConfig = getCloudinaryConfig;
+
+// Convenience wrapper that matches the user's simple signature
+async function uploadToCloudinarySimple(file) {
+  const cfg = getCloudinaryConfig();
+  return await uploadToCloudinary(file, cfg.cloudName, cfg.uploadPreset);
+}
+
+// Do not override existing export if pages already rely on the 3-arg version
+if (typeof window.uploadToCloudinary !== 'function' || window.uploadToCloudinary.length !== 3) {
+  window.uploadToCloudinary = uploadToCloudinarySimple;
+}
+window.uploadToCloudinarySimple = uploadToCloudinarySimple;

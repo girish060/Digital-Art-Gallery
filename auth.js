@@ -1,6 +1,6 @@
 // Shared Authentication and Supabase Initialization
-let sb = null;
-let authStateListeners = [];
+var sb = window.sb || null;
+var authStateListeners = window.authStateListeners || [];
 
 async function initSupabase() {
   if (sb) return sb;
