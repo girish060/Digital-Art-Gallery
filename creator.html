@@ -295,39 +295,58 @@
           console.log('Attempting client-side storage upload...');
           
           // Check if storage bucket exists
-          const { data: buckets } = await supabase.storage.listBuckets();
-          const artworksBucket = buckets?.find(b => b.name === 'artworks');
-          
-          if (!artworksBucket) {
-            console.warn('Artworks bucket not found');
-            throw new Error('Storage bucket not configured');
+          try {
+            const { data: buckets } = await supabase.storage.listBuckets();
+            const artworksBucket = buckets?.find(b => b.name === 'artworks');
+            
+            if (!artworksBucket) {
+              console.warn('Artworks bucket not found, but continuing with upload attempt');
+              // Don't throw error here since bucket might be accessible even if not listed
+            } else {
+              console.log('✅ Artworks bucket found:', artworksBucket);
+            }
+          } catch (bucketError) {
+            console.warn('Could not list buckets, but continuing with upload:', bucketError.message);
+            // Continue with upload attempt even if we can't list buckets
           }
           
           const fileName = `${Date.now()}-${(selectedFile?.name || 'image').replace(/[^a-zA-Z0-9._-]/g, '')}`;
           const uploadPath = `uploads/${fileName}`;
           
           console.log('Uploading to path:', uploadPath);
+          console.log('Storage region: ap-southeast-1');
+          console.log('Storage endpoint: https://crmsrahbjdlfjrmuvfoe.storage.supabase.co/storage/v1/s3');
           
+          // Get current session for authentication
+          const { data: { session } } = await supabase.auth.getSession();
+          if (!session) {
+            throw new Error('No active session for storage upload');
+          }
+          
+          // Upload with proper authentication
           const { error: upError } = await supabase.storage.from('artworks').upload(uploadPath, selectedFile, {
             contentType: selectedFile?.type || 'image/jpeg',
-            upsert: false
+            upsert: false,
+            cacheControl: '3600'
           });
           
           if (upError) {
             console.error('Storage upload error:', upError);
+            console.error('Error details:', JSON.stringify(upError, null, 2));
             throw new Error(`Storage upload failed: ${upError.message}`);
           }
           
           console.log('Storage upload successful');
           
+          // Get public URL
           const { data: pub } = supabase.storage.from('artworks').getPublicUrl(uploadPath);
           const publicUrl = pub?.publicUrl || '';
-          
           if (!publicUrl) {
             throw new Error('Failed to get public URL');
           }
           
           console.log('Got public URL:', publicUrl);
+          console.log('Full storage path:', `https://crmsrahbjdlfjrmuvfoe.storage.supabase.co/storage/v1/object/public/artworks/${uploadPath}`);
           
           // Insert into database
           const { data: dbData, error: dbError } = await supabase
@@ -372,11 +391,22 @@
           });
           
           if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(`Server upload failed: ${errorData.error}`);
+            let errorMessage = `Server upload failed with status: ${response.status}`;
+            try {
+              const errorData = await response.json();
+              errorMessage += ` - ${errorData.error || 'Unknown error'}`;
+            } catch (e) {
+              errorMessage += ' - Invalid response format';
+            }
+            throw new Error(errorMessage);
           }
           
-          const result = await response.json();
+          let result;
+          try {
+            result = await response.json();
+          } catch (e) {
+            throw new Error('Invalid JSON response from server');
+          }
           console.log('Server-side upload successful');
           return { success: true, imageUrl: imageData };
         }

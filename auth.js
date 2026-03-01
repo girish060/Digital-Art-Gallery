@@ -159,14 +159,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 async function signInWithGoogle() {
-  const sb = await initSupabase();
-  if (!sb) {
+  const supabase = await initSupabase();
+  if (!supabase) {
     alert('Supabase not initialized');
     return;
   }
 
   try {
-    const { data, error } = await sb.auth.signInWithOAuth({
+    const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: 'https://digitalartgalleryhackathon.netlify.app/login'
