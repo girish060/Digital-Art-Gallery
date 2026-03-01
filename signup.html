@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign Up - Artify</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    * { font-family: 'Inter', sans-serif; }
+    .text-gradient { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .auth-gradient { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .glass-effect { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
+  <div class="w-full max-w-md">
+    <!-- Auth Card -->
+    <div class="glass-effect rounded-2xl shadow-2xl p-8">
+      <!-- Logo -->
+      <div class="text-center mb-8">
+        <a href="index.html" class="flex items-center justify-center space-x-3 mb-4">
+          <img src="https://pictures.artify.tn/app/artify_logo_xs.png" alt="Artify Logo" class="w-12 h-12 rounded-full">
+          <span class="text-3xl font-bold text-gradient">Artify</span>
+        </a>
+        <h1 class="text-2xl font-bold text-gray-900 mb-2">Create Your Account</h1>
+        <p class="text-gray-600">Join our community of artists and art lovers</p>
+      </div>
+
+      <!-- Google Sign Up -->
+      <button id="googleSignupBtn" class="w-full flex items-center justify-center px-4 py-3 border-2 border-gray-200 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors mb-6">
+        <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" class="w-5 h-5 mr-3">
+        Sign up with Google
+      </button>
+
+      <!-- Divider -->
+      <div class="relative mb-6">
+        <div class="absolute inset-0 flex items-center">
+          <div class="w-full border-t border-gray-200"></div>
+        </div>
+        <div class="relative flex justify-center text-sm">
+          <span class="px-2 bg-white text-gray-500">Or sign up with email</span>
+        </div>
+      </div>
+
+      <!-- Signup Form -->
+      <form id="signupForm" class="space-y-4">
+        <!-- Full Name -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+          <div class="relative">
+            <i class="fas fa-user absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+            <input type="text" id="name" required
+                   class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                   placeholder="Enter your full name">
+          </div>
+        </div>
+
+        <!-- Email -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+          <div class="relative">
+            <i class="fas fa-envelope absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+            <input type="email" id="email" required
+                   class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                   placeholder="Enter your email">
+          </div>
+        </div>
+
+        <!-- Password -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+          <div class="relative">
+            <i class="fas fa-lock absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+            <input type="password" id="password" required minlength="6"
+                   class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                   placeholder="Create a password (min 6 characters)">
+          </div>
+        </div>
+
+        <!-- Confirm Password -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Confirm Password</label>
+          <div class="relative">
+            <i class="fas fa-lock absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+            <input type="password" id="confirmPassword" required
+                   class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                   placeholder="Confirm your password">
+          </div>
+          <p id="passwordError" class="text-red-500 text-sm mt-1 hidden">Passwords do not match</p>
+        </div>
+
+        <!-- Terms Checkbox -->
+        <div class="flex items-center">
+          <input type="checkbox" id="terms" required class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+          <label for="terms" class="ml-2 text-sm text-gray-600">
+            I agree to the <a href="#" class="text-indigo-600 hover:text-indigo-500">Terms of Service</a> and <a href="#" class="text-indigo-600 hover:text-indigo-500">Privacy Policy</a>
+          </label>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" id="signupBtn"
+                class="w-full auth-gradient text-white py-3 rounded-lg font-semibold hover:opacity-90 transform hover:scale-105 transition-all shadow-lg">
+          <span id="signupText">Create Account</span>
+        </button>
+      </form>
+
+      <!-- Login Link -->
+      <div class="text-center mt-6">
+        <p class="text-gray-600">
+          Already have an account?
+          <a href="login.html" class="text-indigo-600 font-medium hover:text-indigo-500 ml-1">Sign in</a>
+        </p>
+      </div>
+
+      <!-- Back to Home -->
+      <div class="text-center mt-4">
+        <a href="index.html" class="text-gray-500 hover:text-gray-700 text-sm">
+          <i class="fas fa-arrow-left mr-1"></i>Back to home
+        </a>
+      </div>
+    </div>
+
+    <!-- Error/Success Messages -->
+    <div id="errorMessage" class="hidden mt-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-center"></div>
+    <div id="successMessage" class="hidden mt-4 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-center"></div>
+  </div>
+
+  <script>
+    // Supabase configuration
+    const SUPABASE_URL = 'https://crmsrahbjdlfjrmuvfoe.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNybXNyYWhiamRsZmpybXV2Zm9lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyNzEzMTYsImV4cCI6MjA4Nzg0NzMxNn0.Ln0Jv4-0bhDGooDQg35--PAvQrjFBhyWqj_Nr-qmQv8';
+
+    let supabaseClient;
+    
+    async function initSupabase() {
+      if (!supabaseClient) {
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+          auth: {
+            persistSession: true,
+            autoRefreshToken: true,
+            detectSessionInUrl: true
+          }
+        });
+      }
+      return supabaseClient;
+    }
+
+    // Form elements
+    const signupForm = document.getElementById('signupForm');
+    const googleSignupBtn = document.getElementById('googleSignupBtn');
+    const passwordError = document.getElementById('passwordError');
+    const errorMessage = document.getElementById('errorMessage');
+    const successMessage = document.getElementById('successMessage');
+    const signupBtn = document.getElementById('signupBtn');
+    const signupText = document.getElementById('signupText');
+
+    // Show error message
+    function showError(message) {
+      errorMessage.textContent = message;
+      errorMessage.classList.remove('hidden');
+      successMessage.classList.add('hidden');
+    }
+
+    // Show success message
+    function showSuccess(message) {
+      successMessage.textContent = message;
+      successMessage.classList.remove('hidden');
+      errorMessage.classList.add('hidden');
+    }
+
+    // Set loading state
+    function setLoading(loading) {
+      signupBtn.disabled = loading;
+      if (loading) {
+        signupText.textContent = 'Creating account...';
+        signupBtn.classList.add('opacity-75');
+      } else {
+        signupText.textContent = 'Create Account';
+        signupBtn.classList.remove('opacity-75');
+      }
+    }
+
+    // Email/Password Signup
+    signupForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const name = document.getElementById('name').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+
+      // Validation
+      if (password !== confirmPassword) {
+        passwordError.classList.remove('hidden');
+        return;
+      }
+      passwordError.classList.add('hidden');
+
+      if (password.length < 6) {
+        showError('Password must be at least 6 characters long');
+        return;
+      }
+
+      setLoading(true);
+
+      try {
+        const sb = await initSupabase();
+        
+        const { data, error } = await sb.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              name: name,
+              full_name: name
+            }
+          }
+        });
+
+        if (error) {
+          showError(error.message);
+        } else {
+          showSuccess('Account created successfully! Please check your email to verify your account.');
+          signupForm.reset();
+          
+          // Store user info
+          if (data.user) {
+            const userInfo = {
+              id: data.user.id,
+              email: data.user.email,
+              name: name
+            };
+            localStorage.setItem('currentUser', JSON.stringify(userInfo));
+          }
+
+          // Redirect to login after 2 seconds
+          setTimeout(() => {
+            window.location.href = 'login.html';
+          }, 2000);
+        }
+      } catch (err) {
+        showError('An unexpected error occurred. Please try again.');
+        console.error('Signup error:', err);
+      } finally {
+        setLoading(false);
+      }
+    });
+
+    // Google OAuth Signup
+    googleSignupBtn.addEventListener('click', async () => {
+      console.log('Google signup button clicked');
+      setLoading(true);
+      
+      try {
+        const sb = await initSupabase();
+        console.log('Supabase initialized:', sb);
+        
+        const { data, error } = await sb.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: window.location.origin + '/login.html',
+            skipBrowserRedirect: false
+          }
+        });
+
+        console.log('OAuth response:', data, error);
+
+        if (error) {
+          showError(error.message);
+          setLoading(false);
+        } else if (data && data.url) {
+          console.log('Redirecting to:', data.url);
+          window.location.href = data.url;
+        }
+      } catch (err) {
+        console.error('Google signup error:', err);
+        showError('Google signup failed: ' + err.message);
+        setLoading(false);
+      }
+    });
+
+    // Check if already logged in
+    document.addEventListener('DOMContentLoaded', async () => {
+      const sb = await initSupabase();
+      const { data: { session } } = await sb.auth.getSession();
+      
+      if (session) {
+        // Already logged in, redirect to home
+        window.location.href = 'index.html';
+      }
+    });
+  </script>
+</body>
+</html>

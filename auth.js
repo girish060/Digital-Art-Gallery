@@ -76,21 +76,24 @@ function updateGlobalUI(user) {
   const userDropdown = document.getElementById('userDropdown');
   const userBtn = document.getElementById('userBtn');
   const logoutBtn = document.getElementById('logoutBtn');
+  const signUpBtn = document.querySelector('a[href="signup.html"]');
 
   if (user) {
     if (userDisplay) userDisplay.textContent = user.name;
     if (loginLink) loginLink.classList.add('hidden');
     if (userMenu) userMenu.classList.remove('hidden');
     if (userDropdown) userDropdown.classList.add('hidden');
-    if (userBtn) userBtn.onclick = () => userMenu.classList.toggle('hidden');
     if (logoutBtn) logoutBtn.classList.remove('hidden');
+    if (signUpBtn) signUpBtn.classList.add('hidden');
+    if (userBtn) userBtn.onclick = null;
   } else {
     if (userDisplay) userDisplay.textContent = 'Sign In';
     if (loginLink) loginLink.classList.remove('hidden');
     if (userMenu) userMenu.classList.add('hidden');
     if (userDropdown) userDropdown.classList.add('hidden');
-    if (userBtn) userBtn.onclick = () => window.location.href = 'login.html';
     if (logoutBtn) logoutBtn.classList.add('hidden');
+    if (signUpBtn) signUpBtn.classList.remove('hidden');
+    if (userBtn) userBtn.onclick = () => window.location.href = 'login.html';
   }
 }
 

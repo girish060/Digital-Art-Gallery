@@ -6,6 +6,8 @@
   <title>Order Confirmation - Artify</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="auth.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
     * { font-family: 'Inter', sans-serif; }
@@ -15,17 +17,52 @@
 </head>
 <body class="bg-gray-50">
   <!-- Header -->
-  <header class="bg-white border-b border-gray-200">
-    <div class="container mx-auto px-4 py-4">
-      <div class="flex items-center justify-between">
-        <a href="index.html" class="flex items-center space-x-3">
-          <img src="https://pictures.artify.tn/app/artify_logo_xs.png" alt="Artify Logo" class="w-10 h-10 rounded-full">
-          <span class="text-2xl font-bold text-gradient">Artify</span>
+  <header class="fixed w-full top-0 z-50 bg-white border-b border-gray-200">
+    <div class="container mx-auto flex flex-wrap p-4 flex-col md:flex-row items-center justify-between">
+      <!-- Logo -->
+      <a href="index.html" class="flex title-font font-bold items-center text-gray-900 mb-4 md:mb-0 group">
+        <img src="https://pictures.artify.tn/app/artify_logo_xs.png" alt="Artify Logo" class="w-10 h-10 rounded-full transition-transform group-hover:scale-110">
+        <span class="ml-3 text-2xl text-gradient">Artify</span>
+      </a>
+      
+      <!-- Navigation -->
+      <nav class="hidden md:flex items-center space-x-8">
+        <a href="index.html" class="text-gray-700 hover:text-indigo-600 font-medium transition-colors">Home</a>
+        <a href="trending.html" class="text-gray-700 hover:text-indigo-600 font-medium transition-colors">Trending</a>
+        <a href="artworks.html" class="text-gray-700 hover:text-indigo-600 font-medium transition-colors">Artworks</a>
+        <a href="creator.html" class="text-gray-700 hover:text-indigo-600 font-medium transition-colors">Creator</a>
+        <a href="Attraction.html" class="text-gray-700 hover:text-indigo-600 font-medium transition-colors">Gallery</a>
+      </nav>
+      
+      <!-- User Actions -->
+      <div class="flex items-center space-x-3">
+        <button id="userBtn" class="flex items-center space-x-2 text-gray-700 hover:text-indigo-600 transition-colors">
+          <i class="fas fa-user-circle text-xl"></i>
+          <span class="hidden md:inline font-medium" id="userDisplay">Sign In</span>
+        </button>
+        <a href="signup.html" class="hidden md:inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-full hover:bg-indigo-700 transition-colors">
+          <i class="fas fa-user-plus mr-2"></i>
+          Sign Up
         </a>
-        <nav class="hidden md:flex items-center space-x-6">
-          <a href="index.html" class="text-gray-700 hover:text-indigo-600 font-medium transition-colors">Home</a>
-          <a href="artworks.html" class="text-gray-700 hover:text-indigo-600 font-medium transition-colors">Artworks</a>
-          <a href="creator.html" class="text-gray-700 hover:text-indigo-600 font-medium transition-colors">Creator</a>
+        <button id="logoutBtn" class="hidden md:inline-flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200 hover:text-gray-900 transition-colors">
+          <i class="fas fa-sign-out-alt mr-2"></i>
+          Logout
+        </button>
+        <button id="mobileMenuBtn" class="md:hidden p-2 text-gray-700 hover:text-indigo-600">
+          <i class="fas fa-bars text-xl"></i>
+        </button>
+      </div>
+    </div>
+    
+    <!-- Mobile Navigation -->
+    <div id="mobileMenu" class="md:hidden bg-white border-t border-gray-200 hidden">
+      <div class="container mx-auto px-4 py-4 space-y-4">
+        <nav class="flex flex-col space-y-2">
+          <a href="index.html" class="text-gray-700 hover:text-indigo-600 font-medium py-2 px-4 rounded transition-colors">Home</a>
+          <a href="trending.html" class="text-gray-700 hover:text-indigo-600 font-medium py-2 px-4 rounded transition-colors">Trending</a>
+          <a href="artworks.html" class="text-gray-700 hover:text-indigo-600 font-medium py-2 px-4 rounded transition-colors">Artworks</a>
+          <a href="creator.html" class="text-gray-700 hover:text-indigo-600 font-medium py-2 px-4 rounded transition-colors">Creator</a>
+          <a href="Attraction.html" class="text-gray-700 hover:text-indigo-600 font-medium py-2 px-4 rounded transition-colors">Gallery</a>
         </nav>
       </div>
     </div>
