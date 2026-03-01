@@ -243,70 +243,149 @@
         return;
       }
 
-      finalImage.src = imageData;
-      finalTitle.textContent = title;
-      finalDesc.textContent = desc;
-      finalPrice.textContent = `Price: ₹${price}`;
       submittedDisplay.classList.remove('hidden');
 
       try {
-        const supabase = await initSupabase();
-        if (!supabase) {
-          alert('Supabase is not configured (missing anon key).');
-          return;
+        console.log('Starting artwork upload process...');
+        
+        // Use the enhanced upload function with fallback
+        const result = await uploadArtworkWithFallback(title, desc, price, imageData, selectedFile);
+        
+        if (result.success) {
+          alert('Artwork submitted successfully!');
+          finalImage.src = result.imageUrl;
+          
+          // Reset form
+          artTitle.value = '';
+          artDescription.value = '';
+          artPrice.value = '';
+          preview.classList.add('hidden');
+          fileInput.value = '';
+          imageData = '';
+          selectedFile = null;
+        } else {
+          alert('Upload failed. Please try again.');
         }
-        // Upload to Storage bucket 'artworks'
-        const fileName = `${Date.now()}-${(selectedFile?.name || 'image').replace(/[^a-zA-Z0-9._-]/g, '')}`;
-        const uploadPath = `uploads/${fileName}`;
-        const { error: upError } = await supabase.storage.from('artworks').upload(uploadPath, selectedFile, {
-          contentType: selectedFile?.type || 'image/jpeg',
-          upsert: false
-        });
-        if (upError) {
-          alert('Upload failed: ' + upError.message);
-          return;
-        }
-        const { data: pub } = supabase.storage.from('artworks').getPublicUrl(uploadPath);
-        const publicUrl = pub?.publicUrl || '';
-        if (!publicUrl) {
-          alert('Failed to get public URL');
-          return;
-        }
-        // Persist record directly via client-side Supabase
-        const { data: dbData, error: dbError } = await supabase
-          .from('artworks')
-          .insert([{
-            title,
-            description: desc,
-            price: parseFloat(price),
-            image_url: publicUrl,
-            category: 'digital' // Default category
-          }]);
-
-        if (dbError) {
-          alert('Database insert failed: ' + dbError.message);
-          return;
-        }
-
-        alert('Artwork submitted successfully!');
-        finalImage.src = publicUrl;
-      } catch (e) {
-        alert('An unexpected error occurred: ' + e.message);
+      } catch (error) {
+        console.error('Upload process failed:', error);
+        alert('Upload failed: ' + error.message + '\n\nPlease check your connection and try again.');
       }
-
-      artTitle.value = '';
-      artDescription.value = '';
-      artPrice.value = '';
-      preview.classList.add('hidden');
-      fileInput.value = '';
-      imageData = '';
-      selectedFile = null;
     });
 
     // Mobile menu toggle
     document.getElementById('mobileMenuBtn').addEventListener('click', function() {
       document.getElementById('mobileMenu').classList.toggle('hidden');
     });
+
+    // Enhanced upload function with better error handling
+    async function uploadArtworkWithFallback(title, description, price, imageData, selectedFile) {
+      try {
+        const supabase = await initSupabase();
+        if (!supabase) {
+          throw new Error('Supabase is not configured');
+        }
+
+        const user = await checkUserSession();
+        if (!user) {
+          throw new Error('User not authenticated');
+        }
+
+        // First, try client-side storage upload
+        try {
+          console.log('Attempting client-side storage upload...');
+          
+          // Check if storage bucket exists
+          const { data: buckets } = await supabase.storage.listBuckets();
+          const artworksBucket = buckets?.find(b => b.name === 'artworks');
+          
+          if (!artworksBucket) {
+            console.warn('Artworks bucket not found');
+            throw new Error('Storage bucket not configured');
+          }
+          
+          const fileName = `${Date.now()}-${(selectedFile?.name || 'image').replace(/[^a-zA-Z0-9._-]/g, '')}`;
+          const uploadPath = `uploads/${fileName}`;
+          
+          console.log('Uploading to path:', uploadPath);
+          
+          const { error: upError } = await supabase.storage.from('artworks').upload(uploadPath, selectedFile, {
+            contentType: selectedFile?.type || 'image/jpeg',
+            upsert: false
+          });
+          
+          if (upError) {
+            console.error('Storage upload error:', upError);
+            throw new Error(`Storage upload failed: ${upError.message}`);
+          }
+          
+          console.log('Storage upload successful');
+          
+          const { data: pub } = supabase.storage.from('artworks').getPublicUrl(uploadPath);
+          const publicUrl = pub?.publicUrl || '';
+          
+          if (!publicUrl) {
+            throw new Error('Failed to get public URL');
+          }
+          
+          console.log('Got public URL:', publicUrl);
+          
+          // Insert into database
+          const { data: dbData, error: dbError } = await supabase
+            .from('artworks')
+            .insert([{
+              title,
+              description: description,
+              price: parseFloat(price),
+              image_url: publicUrl,
+              category: 'digital',
+              artist_id: user.id
+            }]);
+
+          if (dbError) {
+            console.error('Database insert error:', dbError);
+            throw new Error(`Database insert failed: ${dbError.message}`);
+          }
+          
+          console.log('Database insert successful');
+          return { success: true, imageUrl: publicUrl };
+          
+        } catch (clientError) {
+          console.error('Client-side upload failed:', clientError);
+          
+          // Fallback: Try server-side upload with base64 image
+          console.log('Attempting server-side upload with base64 image...');
+          
+          // Convert base64 to blob for server upload
+          const response = await fetch('/api/upload-artwork', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session.access_token}`
+            },
+            body: JSON.stringify({
+              title,
+              description,
+              price: parseFloat(price),
+              image_url: imageData, // Use base64 data URL as fallback
+              category: 'digital'
+            })
+          });
+          
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(`Server upload failed: ${errorData.error}`);
+          }
+          
+          const result = await response.json();
+          console.log('Server-side upload successful');
+          return { success: true, imageUrl: imageData };
+        }
+        
+      } catch (error) {
+        console.error('All upload methods failed:', error);
+        throw error;
+      }
+    }
   </script>
 </body>
 </html>

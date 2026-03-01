@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Test - Artify</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="auth.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-8">
+    <div class="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-6">
+        <h1 class="text-2xl font-bold text-gray-800 mb-6">Upload Test & Diagnostics</h1>
+        
+        <div id="authStatus" class="mb-6 p-4 rounded-lg">
+            <h2 class="text-lg font-semibold mb-2">Authentication Status</h2>
+            <div id="authInfo"></div>
+        </div>
+        
+        <div id="storageStatus" class="mb-6 p-4 rounded-lg">
+            <h2 class="text-lg font-semibold mb-2">Storage Status</h2>
+            <div id="storageInfo"></div>
+        </div>
+        
+        <div id="testUpload" class="mb-6">
+            <h2 class="text-lg font-semibold mb-2">Test Upload</h2>
+            <input type="file" id="testFile" accept="image/*" class="mb-4">
+            <br>
+            <button id="testUploadBtn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                Test Upload
+            </button>
+            <div id="testResults" class="mt-4 p-4 bg-gray-50 rounded"></div>
+        </div>
+        
+        <div id="testDatabase" class="mb-6">
+            <h2 class="text-lg font-semibold mb-2">Test Database Insert</h2>
+            <button id="testDbBtn" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                Test Database
+            </button>
+            <div id="dbResults" class="mt-4 p-4 bg-gray-50 rounded"></div>
+        </div>
+    </div>
+
+    <script>
+        async function runDiagnostics() {
+            const supabase = await initSupabase();
+            const user = await checkUserSession();
+            
+            // Authentication Status
+            const authInfo = document.getElementById('authInfo');
+            if (user) {
+                authInfo.innerHTML = `
+                    <div class="text-green-600">
+                        <p>✅ User authenticated: ${user.name || user.email}</p>
+                        <p>User ID: ${user.id}</p>
+                    </div>
+                `;
+                document.getElementById('authStatus').className = 'mb-6 p-4 rounded-lg bg-green-50 border border-green-200';
+            } else {
+                authInfo.innerHTML = `
+                    <div class="text-red-600">
+                        <p>❌ No user authenticated</p>
+                        <p>Please sign in first</p>
+                    </div>
+                `;
+                document.getElementById('authStatus').className = 'mb-6 p-4 rounded-lg bg-red-50 border border-red-200';
+            }
+            
+            // Storage Status
+            const storageInfo = document.getElementById('storageInfo');
+            try {
+                if (supabase) {
+                    const { data: buckets } = await supabase.storage.listBuckets();
+                    const artworksBucket = buckets?.find(b => b.name === 'artworks');
+                    
+                    if (artworksBucket) {
+                        storageInfo.innerHTML = `
+                            <div class="text-green-600">
+                                <p>✅ Artworks bucket found</p>
+                                <p>Bucket ID: ${artworksBucket.id}</p>
+                                <p>Public: ${artworksBucket.public}</p>
+                            </div>
+                        `;
+                        document.getElementById('storageStatus').className = 'mb-6 p-4 rounded-lg bg-green-50 border border-green-200';
+                    } else {
+                        storageInfo.innerHTML = `
+                            <div class="text-red-600">
+                                <p>❌ Artworks bucket not found</p>
+                                <p>Available buckets: ${buckets?.map(b => b.name).join(', ') || 'none'}</p>
+                            </div>
+                        `;
+                        document.getElementById('storageStatus').className = 'mb-6 p-4 rounded-lg bg-red-50 border border-red-200';
+                    }
+                } else {
+                    storageInfo.innerHTML = `
+                        <div class="text-red-600">
+                            <p>❌ Supabase not initialized</p>
+                        </div>
+                    `;
+                    document.getElementById('storageStatus').className = 'mb-6 p-4 rounded-lg bg-red-50 border border-red-200';
+                }
+            } catch (error) {
+                storageInfo.innerHTML = `
+                    <div class="text-red-600">
+                        <p>❌ Storage check failed: ${error.message}</p>
+                        <p>Error details: ${JSON.stringify(error, null, 2)}</p>
+                    </div>
+                `;
+                document.getElementById('storageStatus').className = 'mb-6 p-4 rounded-lg bg-red-50 border border-red-200';
+            }
+        }
+        
+        // Test upload functionality
+        document.getElementById('testUploadBtn').addEventListener('click', async () => {
+            const fileInput = document.getElementById('testFile');
+            const results = document.getElementById('testResults');
+            
+            if (!fileInput.files[0]) {
+                results.innerHTML = '<div class="text-red-600">Please select a file first</div>';
+                return;
+            }
+            
+            const file = fileInput.files[0];
+            const supabase = await initSupabase();
+            const user = await checkUserSession();
+            
+            if (!user) {
+                results.innerHTML = '<div class="text-red-600">Please sign in first</div>';
+                return;
+            }
+            
+            results.innerHTML = '<div class="text-blue-600">Testing upload...</div>';
+            
+            try {
+                console.log('Starting upload test...');
+                console.log('File:', file.name, file.type, file.size);
+                
+                const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+                const uploadPath = `test/${fileName}`;
+                
+                console.log('Upload path:', uploadPath);
+                
+                const { error: upError } = await supabase.storage
+                    .from('artworks')
+                    .upload(uploadPath, file, {
+                        contentType: file.type,
+                        upsert: false
+                    });
+                
+                if (upError) {
+                    console.error('Upload error:', upError);
+                    results.innerHTML = `
+                        <div class="text-red-600">
+                            <p>❌ Upload failed: ${upError.message}</p>
+                            <p>Error details: ${JSON.stringify(upError, null, 2)}</p>
+                        </div>
+                    `;
+                } else {
+                    console.log('Upload successful');
+                    const { data: pub } = supabase.storage.from('artworks').getPublicUrl(uploadPath);
+                    const publicUrl = pub?.publicUrl || '';
+                    
+                    results.innerHTML = `
+                        <div class="text-green-600">
+                            <p>✅ Upload successful!</p>
+                            <p>Public URL: <a href="${publicUrl}" target="_blank" class="text-blue-600 underline">${publicUrl}</a></p>
+                            <img src="${publicUrl}" class="mt-2 max-w-xs rounded" alt="Uploaded test image">
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Upload test exception:', error);
+                results.innerHTML = `
+                    <div class="text-red-600">
+                        <p>❌ Upload test failed: ${error.message}</p>
+                        <p>Error details: ${JSON.stringify(error, null, 2)}</p>
+                    </div>
+                `;
+            }
+        });
+        
+        // Test database insert
+        document.getElementById('testDbBtn').addEventListener('click', async () => {
+            const results = document.getElementById('dbResults');
+            const supabase = await initSupabase();
+            const user = await checkUserSession();
+            
+            if (!user) {
+                results.innerHTML = '<div class="text-red-600">Please sign in first</div>';
+                return;
+            }
+            
+            results.innerHTML = '<div class="text-blue-600">Testing database insert...</div>';
+            
+            try {
+                const { data: dbData, error: dbError } = await supabase
+                    .from('artworks')
+                    .insert([{
+                        title: 'Test Artwork',
+                        description: 'This is a test artwork for diagnostics',
+                        price: 99.99,
+                        image_url: 'https://via.placeholder.com/300x200',
+                        category: 'digital',
+                        artist_id: user.id
+                    }])
+                    .select();
+                
+                if (dbError) {
+                    console.error('Database insert error:', dbError);
+                    results.innerHTML = `
+                        <div class="text-red-600">
+                            <p>❌ Database insert failed: ${dbError.message}</p>
+                            <p>Error details: ${JSON.stringify(dbError, null, 2)}</p>
+                        </div>
+                    `;
+                } else {
+                    console.log('Database insert successful:', dbData);
+                    results.innerHTML = `
+                        <div class="text-green-600">
+                            <p>✅ Database insert successful!</p>
+                            <p>Inserted data: ${JSON.stringify(dbData, null, 2)}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Database test exception:', error);
+                results.innerHTML = `
+                    <div class="text-red-600">
+                        <p>❌ Database test failed: ${error.message}</p>
+                        <p>Error details: ${JSON.stringify(error, null, 2)}</p>
+                    </div>
+                `;
+            }
+        });
+        
+        // Run diagnostics on page load
+        document.addEventListener('DOMContentLoaded', runDiagnostics);
+    </script>
+</body>
+</html>

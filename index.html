@@ -95,13 +95,17 @@
         
         <!-- Mobile User Actions -->
         <div class="pt-4 border-t border-gray-200 space-y-2">
-          <button class="w-full flex items-center justify-center px-4 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+          <button id="mobileUserBtn" class="w-full flex items-center justify-center px-4 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
             <i class="fas fa-user-circle mr-2"></i>
-            Sign In
+            <span id="mobileUserDisplay">Sign In</span>
           </button>
-          <button class="w-full flex items-center justify-center px-4 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+          <a href="signup.html" id="mobileSignUpBtn" class="w-full flex items-center justify-center px-4 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
             <i class="fas fa-user-plus mr-2"></i>
             Sign Up
+          </a>
+          <button id="mobileLogoutBtn" class="w-full flex items-center justify-center px-4 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 hover:text-gray-900 transition-colors hidden">
+            <i class="fas fa-sign-out-alt mr-2"></i>
+            Logout
           </button>
         </div>
       </div>
@@ -1022,7 +1026,19 @@
       }
     }
 
-    document.addEventListener('DOMContentLoaded', loadFeaturedArtworks);
+    document.addEventListener('DOMContentLoaded', function() {
+      loadFeaturedArtworks();
+      
+      // Add mobile menu toggle functionality
+      const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+      const mobileMenu = document.getElementById('mobileMenu');
+      
+      if (mobileMenuBtn && mobileMenu) {
+        mobileMenuBtn.addEventListener('click', function() {
+          mobileMenu.classList.toggle('hidden');
+        });
+      }
+    });
   </script>
 
   <!-- AOS Animation Script -->

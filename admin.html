@@ -25,7 +25,10 @@
   <main class="container mx-auto px-5 py-8">
     <h1 class="text-3xl font-bold mb-6">Manage Artworks</h1>
     <div class="flex items-center mb-4">
-      <button id="logoutBtn" class="px-3 py-2 bg-gray-200 rounded hover:bg-gray-300 mr-3">Logout</button>
+      <button id="logoutBtn" class="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200 hover:text-gray-900 transition-colors">
+            <i class="fas fa-sign-out-alt mr-2"></i>
+            Logout
+          </button>
       <input id="adminKey" type="password" placeholder="Admin API Key" class="px-3 py-2 border rounded w-64" />
     </div>
 
@@ -147,6 +150,15 @@
         return;
       }
       loadArtworks();
+      
+      // Add logout button functionality
+      const logoutBtn = document.getElementById('logoutBtn');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          handleLogout();
+        });
+      }
     });
   </script>
 </body>

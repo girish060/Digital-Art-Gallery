@@ -78,6 +78,12 @@ function updateGlobalUI(user) {
   const userBtn = document.getElementById('userBtn');
   const logoutBtn = document.getElementById('logoutBtn');
   const signUpBtn = document.querySelector('a[href="signup.html"]');
+  
+  // Mobile elements
+  const mobileUserDisplay = document.getElementById('mobileUserDisplay');
+  const mobileUserBtn = document.getElementById('mobileUserBtn');
+  const mobileLogoutBtn = document.getElementById('mobileLogoutBtn');
+  const mobileSignUpBtn = document.getElementById('mobileSignUpBtn');
 
   console.log('logoutBtn element:', logoutBtn);
   console.log('signUpBtn element:', signUpBtn);
@@ -91,6 +97,12 @@ function updateGlobalUI(user) {
     if (logoutBtn) logoutBtn.classList.remove('hidden');
     if (signUpBtn) signUpBtn.classList.add('hidden');
     if (userBtn) userBtn.onclick = null;
+    
+    // Mobile UI updates
+    if (mobileUserDisplay) mobileUserDisplay.textContent = user.name;
+    if (mobileLogoutBtn) mobileLogoutBtn.classList.remove('hidden');
+    if (mobileSignUpBtn) mobileSignUpBtn.classList.add('hidden');
+    if (mobileUserBtn) mobileUserBtn.onclick = null;
   } else {
     console.log('No user, hiding logout, showing signup');
     if (userDisplay) userDisplay.textContent = 'Sign In';
@@ -100,6 +112,12 @@ function updateGlobalUI(user) {
     if (logoutBtn) logoutBtn.classList.add('hidden');
     if (signUpBtn) signUpBtn.classList.remove('hidden');
     if (userBtn) userBtn.onclick = () => window.location.href = 'login.html';
+    
+    // Mobile UI updates
+    if (mobileUserDisplay) mobileUserDisplay.textContent = 'Sign In';
+    if (mobileLogoutBtn) mobileLogoutBtn.classList.add('hidden');
+    if (mobileSignUpBtn) mobileSignUpBtn.classList.remove('hidden');
+    if (mobileUserBtn) mobileUserBtn.onclick = () => window.location.href = 'login.html';
   }
 }
 
@@ -125,6 +143,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   const logoutBtn = document.getElementById('logoutBtn');
   if (logoutBtn) {
     logoutBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      handleLogout();
+    });
+  }
+  
+  // Add mobile logout button event listener
+  const mobileLogoutBtn = document.getElementById('mobileLogoutBtn');
+  if (mobileLogoutBtn) {
+    mobileLogoutBtn.addEventListener('click', (e) => {
       e.preventDefault();
       handleLogout();
     });

@@ -255,6 +255,54 @@ app.post("/api/artworks/:id/like", async (req, res) => {
   }
 });
 
+// Server-side artwork upload endpoint
+app.post("/api/upload-artwork", async (req, res) => {
+  if (!supabase) return res.status(500).json({ error: "Database not configured" });
+  
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  const token = authHeader.substring(7);
+  const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+  
+  if (authError || !user) {
+    return res.status(401).json({ error: "Invalid token" });
+  }
+
+  const { title, description, price, image_url, category } = req.body || {};
+  
+  if (!title || !price || !image_url) {
+    return res.status(400).json({ error: "Title, price, and image_url are required" });
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from("artworks")
+      .insert([{
+        title,
+        description: description || '',
+        price: parseFloat(price),
+        image_url,
+        category: category || 'digital',
+        artist_id: user.id
+      }])
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Artwork upload database error:", error.message);
+      return res.status(500).json({ error: "Failed to save artwork: " + error.message });
+    }
+
+    res.json({ success: true, artwork: data });
+  } catch (e) {
+    console.error("Critical error in upload-artwork:", e.message);
+    res.status(503).json({ error: "Backend unreachable" });
+  }
+});
+
 // Example test route
 app.get("/api/test", (req, res) => {
   res.json({ message: "Backend working" });
