@@ -367,9 +367,7 @@
               description: description,
               price: parseFloat(price),
               image_url: imageUrl,
-              category: 'digital',
-              artist_id: user.id,
-              storage_provider: 'cloudinary' // Track storage provider
+              artist_id: user.id
             }]);
 
           if (dbError) {
